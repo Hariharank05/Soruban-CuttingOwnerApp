@@ -1,0 +1,280 @@
+import React, { useState, useMemo, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity, FlatList,
+  StatusBar, RefreshControl,
+} from 'react-native';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
+import { useThemedStyles } from '@/src/utils/useThemedStyles';
+import { useOrders } from '@/context/OrderContext';
+import { Order, OwnerOrderStatus } from '@/types';
+
+const STATUS_FILTERS: { key: OwnerOrderStatus | 'all'; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'preparing', label: 'Preparing' },
+  { key: 'ready', label: 'Ready' },
+  { key: 'out_for_delivery', label: 'Out for Delivery' },
+  { key: 'delivered', label: 'Delivered' },
+];
+
+const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
+  pending: { color: '#E65100', bg: '#FFF3E0', icon: 'clock-outline' },
+  preparing: { color: '#1565C0', bg: '#E3F2FD', icon: 'food-variant' },
+  ready: { color: '#388E3C', bg: '#E8F5E9', icon: 'check-circle-outline' },
+  out_for_delivery: { color: '#7B1FA2', bg: '#F3E5F5', icon: 'truck-delivery-outline' },
+  delivered: { color: '#616161', bg: '#F5F5F5', icon: 'package-variant-closed' },
+  cancelled: { color: '#C62828', bg: '#FFEBEE', icon: 'close-circle-outline' },
+};
+
+function StatCard({ icon, count, label, color, bg }: { icon: string; count: number; label: string; color: string; bg: string }) {
+  return (
+    <View style={[styles.statCard, { backgroundColor: bg }]}>
+      <Icon name={icon as any} size={22} color={color} />
+      <Text style={[styles.statCount, { color }]}>{count}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+export default function OrdersDashboard() {
+  const router = useRouter();
+  const themed = useThemedStyles();
+  const { orders, refreshOrders } = useOrders();
+  const [activeFilter, setActiveFilter] = useState<OwnerOrderStatus | 'all'>('all');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const stats = useMemo(() => {
+    const today = new Date().toDateString();
+    return {
+      pending: orders.filter(o => o.status === 'pending').length,
+      preparing: orders.filter(o => o.status === 'preparing').length,
+      ready: orders.filter(o => o.status === 'ready').length,
+      deliveredToday: orders.filter(o => o.status === 'delivered' && new Date(o.createdAt).toDateString() === today).length,
+    };
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    if (activeFilter === 'all') return orders;
+    return orders.filter(o => o.status === activeFilter);
+  }, [orders, activeFilter]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshOrders?.();
+    setRefreshing(false);
+  }, [refreshOrders]);
+
+  const renderOrder = useCallback(({ item }: { item: Order }) => {
+    const config = STATUS_CONFIG[item.status] || STATUS_CONFIG.pending;
+    const itemsSummary = item.items
+      ?.slice(0, 3)
+      .map(i => `${i.name}${i.cutType ? ` (${i.cutType})` : ''}`)
+      .join(', ');
+    const moreCount = (item.items?.length || 0) - 3;
+
+    return (
+      <TouchableOpacity
+        style={[styles.orderCard, themed.card]}
+        activeOpacity={0.85}
+        onPress={() => router.push({ pathname: '/order-detail', params: { id: item.id } })}
+      >
+        <View style={styles.orderTopRow}>
+          <View style={styles.orderIdRow}>
+            <Icon name="receipt" size={16} color={COLORS.primary} />
+            <Text style={styles.orderId}>#ORD-{item.id.slice(-4)}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
+            <View style={[styles.statusDot, { backgroundColor: config.color }]} />
+            <Text style={[styles.statusText, { color: config.color }]}>
+              {item.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.customerRow}>
+          <Icon name="account-outline" size={16} color={COLORS.text.secondary} />
+          <Text style={styles.customerName}>{item.customerName || 'Customer'}</Text>
+          {item.customerPhone && (
+            <>
+              <Icon name="phone-outline" size={14} color={COLORS.text.muted} style={{ marginLeft: 8 }} />
+              <Text style={styles.customerPhone}>{item.customerPhone}</Text>
+            </>
+          )}
+        </View>
+
+        <View style={styles.itemsRow}>
+          <Icon name="food-apple-outline" size={14} color={COLORS.text.muted} />
+          <Text style={styles.itemsText} numberOfLines={2}>
+            {itemsSummary}{moreCount > 0 ? ` +${moreCount} more` : ''}
+          </Text>
+        </View>
+
+        <View style={styles.orderBottomRow}>
+          <View style={styles.timeSlotRow}>
+            <Icon name="clock-outline" size={14} color={COLORS.text.muted} />
+            <Text style={styles.timeSlotText}>{item.deliverySlot || 'Flexible'}</Text>
+          </View>
+          <Text style={styles.orderTotal}>{'\u20B9'}{item.total || 0}</Text>
+        </View>
+
+        <View style={styles.viewDetailsRow}>
+          <Text style={styles.viewDetailsText}>View Details</Text>
+          <Icon name="chevron-right" size={16} color={COLORS.primary} />
+        </View>
+      </TouchableOpacity>
+    );
+  }, [themed, router]);
+
+  return (
+    <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      {/* Header */}
+      <LinearGradient colors={['#388E3C', '#4CAF50']} style={styles.header}>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.headerTitle}>Orders</Text>
+            <Text style={styles.headerSub}>Manage incoming orders</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.bellBtn}
+            onPress={() => router.push('/notifications' as any)}
+          >
+            <Icon name="bell-outline" size={24} color="#FFF" />
+            {stats.pending > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>{stats.pending}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+
+      {/* Stats Cards */}
+      <View style={styles.statsGrid}>
+        <StatCard icon="clock-outline" count={stats.pending} label="Pending" color="#E65100" bg="#FFF3E0" />
+        <StatCard icon="food-variant" count={stats.preparing} label="Preparing" color="#1565C0" bg="#E3F2FD" />
+        <StatCard icon="check-circle-outline" count={stats.ready} label="Ready" color="#388E3C" bg="#E8F5E9" />
+        <StatCard icon="truck-check-outline" count={stats.deliveredToday} label="Delivered" color="#4CAF50" bg="#E8F5E9" />
+      </View>
+
+      {/* Filter Tabs */}
+      <View style={styles.filterScroll}>
+        <FlatList
+          horizontal
+          data={STATUS_FILTERS}
+          keyExtractor={f => f.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+          renderItem={({ item: f }) => (
+            <TouchableOpacity
+              style={[styles.filterChip, activeFilter === f.key && styles.filterChipActive]}
+              onPress={() => setActiveFilter(f.key)}
+            >
+              <Text style={[styles.filterChipText, activeFilter === f.key && styles.filterChipTextActive]}>
+                {f.label}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      {/* Order List */}
+      <FlatList
+        data={filteredOrders}
+        keyExtractor={item => item.id}
+        renderItem={renderOrder}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Icon name="clipboard-text-outline" size={56} color={COLORS.text.muted} />
+            <Text style={styles.emptyTitle}>No orders found</Text>
+            <Text style={styles.emptyDesc}>
+              {activeFilter === 'all' ? 'Orders will appear here when customers place them' : `No ${activeFilter.replace(/_/g, ' ')} orders right now`}
+            </Text>
+          </View>
+        }
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: COLORS.background },
+
+  /* Header */
+  header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.lg },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerTitle: { fontSize: 24, fontWeight: '800', color: '#FFF' },
+  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 },
+  bellBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  bellBadge: { position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#E53935', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
+  bellBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
+
+  /* Stats */
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.base, marginTop: -SPACING.md, gap: SPACING.sm },
+  statCard: {
+    flex: 1, minWidth: '45%', borderRadius: RADIUS.lg, padding: SPACING.md,
+    alignItems: 'center', ...SHADOW.sm,
+  },
+  statCount: { fontSize: 22, fontWeight: '800', marginTop: 4 },
+  statLabel: { fontSize: 11, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
+
+  /* Filters */
+  filterScroll: { marginTop: SPACING.md },
+  filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm },
+  filterChip: {
+    paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,
+    borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',
+  },
+  filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundSoft },
+  filterChipText: { fontSize: 13, fontWeight: '700', color: COLORS.text.secondary },
+  filterChipTextActive: { color: COLORS.primary },
+
+  /* Order List */
+  list: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: 100 },
+
+  /* Order Card */
+  orderCard: {
+    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    marginBottom: SPACING.md, ...SHADOW.sm,
+  },
+  orderTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm },
+  orderIdRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  orderId: { fontSize: 15, fontWeight: '800', color: COLORS.text.primary },
+  statusBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full,
+  },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusText: { fontSize: 11, fontWeight: '700' },
+
+  customerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
+  customerName: { fontSize: 13, fontWeight: '600', color: COLORS.text.primary },
+  customerPhone: { fontSize: 12, color: COLORS.text.muted },
+
+  itemsRow: { flexDirection: 'row', gap: 6, marginBottom: SPACING.sm, paddingRight: SPACING.lg },
+  itemsText: { fontSize: 12, color: COLORS.text.secondary, lineHeight: 17, flex: 1 },
+
+  orderBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.border },
+  timeSlotRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  timeSlotText: { fontSize: 12, color: COLORS.text.muted },
+  orderTotal: { fontSize: 17, fontWeight: '800', color: COLORS.primary },
+
+  viewDetailsRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
+    marginTop: SPACING.sm, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.border,
+  },
+  viewDetailsText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+
+  /* Empty State */
+  emptyContainer: { alignItems: 'center', paddingTop: SPACING.xxxl * 2 },
+  emptyTitle: { fontSize: 17, fontWeight: '800', color: COLORS.text.primary, marginTop: SPACING.md },
+  emptyDesc: { fontSize: 13, color: COLORS.text.muted, textAlign: 'center', marginTop: 4, paddingHorizontal: SPACING.xxl },
+});

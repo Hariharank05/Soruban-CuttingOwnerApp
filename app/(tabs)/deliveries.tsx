@@ -1,0 +1,348 @@
+import React, { useState, useMemo, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView,
+  StatusBar, Alert, RefreshControl,
+} from 'react-native';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
+import { useThemedStyles } from '@/src/utils/useThemedStyles';
+import { useOrders } from '@/context/OrderContext';
+import { useDeliveries } from '@/context/DeliveryContext';
+import { Order } from '@/types';
+
+export default function DeliveriesScreen() {
+  const router = useRouter();
+  const themed = useThemedStyles();
+  const { orders, updateOrderStatus } = useOrders();
+  const { deliveryPersons, assignDelivery, markDelivered } = useDeliveries();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const activeDeliveries = useMemo(() => {
+    return orders.filter(o => o.status === 'out_for_delivery' || o.status === 'ready');
+  }, [orders]);
+
+  const outForDelivery = useMemo(() => activeDeliveries.filter(o => o.status === 'out_for_delivery'), [activeDeliveries]);
+  const readyOrders = useMemo(() => activeDeliveries.filter(o => o.status === 'ready'), [activeDeliveries]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 800);
+  }, []);
+
+  const handleAssignDriver = (orderId: string) => {
+    const available = deliveryPersons?.filter(d => d.isAvailable) || [];
+    if (available.length === 0) {
+      Alert.alert('No Drivers Available', 'All delivery persons are currently busy.');
+      return;
+    }
+    Alert.alert(
+      'Assign Driver',
+      'Select a delivery person',
+      [
+        ...available.map(d => ({
+          text: d.name,
+          onPress: () => assignDelivery?.(orderId, d.id),
+        })),
+        { text: 'Cancel', style: 'cancel' as const },
+      ]
+    );
+  };
+
+  const handleMarkDelivered = (orderId: string) => {
+    Alert.alert(
+      'Confirm Delivery',
+      'Mark this order as delivered?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm',
+          onPress: () => {
+            markDelivered?.(orderId);
+            updateOrderStatus?.(orderId, 'delivered');
+          },
+        },
+      ]
+    );
+  };
+
+  const renderDeliveryCard = (order: Order) => {
+    const isOut = order.status === 'out_for_delivery';
+    return (
+      <View key={order.id} style={[styles.deliveryCard, themed.card]}>
+        <View style={styles.deliveryTopRow}>
+          <View style={styles.orderIdRow}>
+            <Icon name="receipt" size={14} color={COLORS.primary} />
+            <Text style={styles.orderId}>#ORD-{order.id.slice(-4)}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: isOut ? '#F3E5F5' : '#E8F5E9' }]}>
+            <View style={[styles.statusDot, { backgroundColor: isOut ? '#7B1FA2' : '#388E3C' }]} />
+            <Text style={[styles.statusText, { color: isOut ? '#7B1FA2' : '#388E3C' }]}>
+              {isOut ? 'Out for Delivery' : 'Ready'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Icon name="account-outline" size={16} color={COLORS.text.secondary} />
+          <Text style={styles.detailText}>{order.customerName || 'Customer'}</Text>
+        </View>
+
+        {order.deliveryAddress && (
+          <View style={styles.detailRow}>
+            <Icon name="map-marker-outline" size={16} color={COLORS.text.secondary} />
+            <Text style={styles.detailText} numberOfLines={2}>{order.deliveryAddress}</Text>
+          </View>
+        )}
+
+        <View style={styles.detailRow}>
+          <Icon name="moped-outline" size={16} color={COLORS.text.secondary} />
+          <Text style={[styles.detailText, !order.assignedDriver && { color: '#E65100', fontStyle: 'italic' }]}>
+            {order.assignedDriver || 'Unassigned'}
+          </Text>
+        </View>
+
+        <View style={styles.actionRow}>
+          {!order.assignedDriver && (
+            <TouchableOpacity
+              style={styles.assignBtn}
+              onPress={() => handleAssignDriver(order.id)}
+            >
+              <Icon name="account-plus-outline" size={16} color="#FFF" />
+              <Text style={styles.assignBtnText}>Assign Driver</Text>
+            </TouchableOpacity>
+          )}
+          {isOut && (
+            <TouchableOpacity
+              style={styles.deliveredBtn}
+              onPress={() => handleMarkDelivered(order.id)}
+            >
+              <Icon name="check-circle-outline" size={16} color="#FFF" />
+              <Text style={styles.deliveredBtnText}>Mark Delivered</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={styles.viewBtn}
+            onPress={() => router.push({ pathname: '/order-detail', params: { id: order.id } })}
+          >
+            <Text style={styles.viewBtnText}>View</Text>
+            <Icon name="chevron-right" size={14} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderDriverCard = ({ item: driver }: { item: any }) => {
+    const isAvailable = driver.isAvailable;
+    return (
+      <View style={[styles.driverCard, themed.card]}>
+        <View style={styles.driverRow}>
+          <View style={[styles.driverAvatar, { backgroundColor: isAvailable ? '#E8F5E9' : '#FFEBEE' }]}>
+            <Icon name="account" size={22} color={isAvailable ? '#388E3C' : '#C62828'} />
+          </View>
+          <View style={styles.driverInfo}>
+            <View style={styles.driverNameRow}>
+              <Text style={styles.driverName}>{driver.name}</Text>
+              <View style={[styles.driverStatusDot, { backgroundColor: isAvailable ? '#4CAF50' : '#E53935' }]} />
+              <Text style={[styles.driverStatusText, { color: isAvailable ? '#388E3C' : '#C62828' }]}>
+                {isAvailable ? 'Available' : 'Busy'}
+              </Text>
+            </View>
+            <View style={styles.driverMeta}>
+              <View style={styles.driverMetaItem}>
+                <Icon name="phone-outline" size={12} color={COLORS.text.muted} />
+                <Text style={styles.driverMetaText}>{driver.phone || 'N/A'}</Text>
+              </View>
+              <View style={styles.driverMetaItem}>
+                <Icon name="package-variant" size={12} color={COLORS.text.muted} />
+                <Text style={styles.driverMetaText}>{driver.activeDeliveries || 0} active</Text>
+              </View>
+              <View style={styles.driverMetaItem}>
+                <Icon name="check-all" size={12} color={COLORS.text.muted} />
+                <Text style={styles.driverMetaText}>{driver.totalDeliveries || 0} total</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      {/* Header */}
+      <LinearGradient colors={themed.headerGradient} style={styles.header}>
+        <Text style={[styles.headerTitle, themed.textPrimary]}>Deliveries</Text>
+        <Text style={[styles.headerSub, themed.textSecondary]}>Track and manage deliveries</Text>
+      </LinearGradient>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+      >
+        {/* Quick Stats */}
+        <View style={styles.quickStats}>
+          <View style={[styles.quickStatCard, { backgroundColor: '#F3E5F5' }]}>
+            <Icon name="truck-delivery" size={18} color="#7B1FA2" />
+            <Text style={[styles.quickStatCount, { color: '#7B1FA2' }]}>{outForDelivery.length}</Text>
+            <Text style={styles.quickStatLabel}>In Transit</Text>
+          </View>
+          <View style={[styles.quickStatCard, { backgroundColor: '#E8F5E9' }]}>
+            <Icon name="package-variant" size={18} color="#388E3C" />
+            <Text style={[styles.quickStatCount, { color: '#388E3C' }]}>{readyOrders.length}</Text>
+            <Text style={styles.quickStatLabel}>Ready</Text>
+          </View>
+          <View style={[styles.quickStatCard, { backgroundColor: '#E3F2FD' }]}>
+            <Icon name="account-group" size={18} color="#1565C0" />
+            <Text style={[styles.quickStatCount, { color: '#1565C0' }]}>{deliveryPersons?.filter(d => d.isAvailable).length || 0}</Text>
+            <Text style={styles.quickStatLabel}>Available</Text>
+          </View>
+        </View>
+
+        {/* Active Deliveries */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Icon name="truck-fast-outline" size={20} color={COLORS.text.primary} />
+            <Text style={[styles.sectionTitle, themed.textPrimary]}>Active Deliveries</Text>
+            <View style={styles.sectionBadge}>
+              <Text style={styles.sectionBadgeText}>{activeDeliveries.length}</Text>
+            </View>
+          </View>
+
+          {activeDeliveries.length === 0 ? (
+            <View style={[styles.emptySection, themed.card]}>
+              <Icon name="truck-outline" size={40} color={COLORS.text.muted} />
+              <Text style={styles.emptySectionText}>No active deliveries</Text>
+            </View>
+          ) : (
+            activeDeliveries.map(renderDeliveryCard)
+          )}
+        </View>
+
+        {/* Delivery Persons */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Icon name="account-group-outline" size={20} color={COLORS.text.primary} />
+            <Text style={[styles.sectionTitle, themed.textPrimary]}>Delivery Persons</Text>
+            <View style={styles.sectionBadge}>
+              <Text style={styles.sectionBadgeText}>{deliveryPersons?.length || 0}</Text>
+            </View>
+          </View>
+
+          {(!deliveryPersons || deliveryPersons.length === 0) ? (
+            <View style={[styles.emptySection, themed.card]}>
+              <Icon name="account-plus-outline" size={40} color={COLORS.text.muted} />
+              <Text style={styles.emptySectionText}>No delivery persons added</Text>
+            </View>
+          ) : (
+            deliveryPersons.map((driver: any) => (
+              <View key={driver.id}>{renderDriverCard({ item: driver })}</View>
+            ))
+          )}
+        </View>
+
+        <View style={{ height: SPACING.xxxl }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { paddingBottom: 100 },
+
+  /* Header */
+  header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text.primary },
+  headerSub: { fontSize: 12, color: COLORS.text.secondary, marginTop: 2 },
+
+  /* Quick Stats */
+  quickStats: { flexDirection: 'row', paddingHorizontal: SPACING.base, gap: SPACING.sm, marginTop: SPACING.md },
+  quickStatCard: {
+    flex: 1, borderRadius: RADIUS.lg, padding: SPACING.md,
+    alignItems: 'center', ...SHADOW.sm,
+  },
+  quickStatCount: { fontSize: 20, fontWeight: '800', marginTop: 4 },
+  quickStatLabel: { fontSize: 10, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
+
+  /* Sections */
+  section: { marginTop: SPACING.lg, paddingHorizontal: SPACING.base },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: SPACING.md },
+  sectionTitle: { fontSize: 17, fontWeight: '800', color: COLORS.text.primary, flex: 1 },
+  sectionBadge: {
+    minWidth: 22, height: 22, borderRadius: 11, backgroundColor: COLORS.primary,
+    justifyContent: 'center', alignItems: 'center', paddingHorizontal: 6,
+  },
+  sectionBadgeText: { fontSize: 11, fontWeight: '700', color: '#FFF' },
+
+  emptySection: {
+    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.xl,
+    alignItems: 'center', ...SHADOW.sm,
+  },
+  emptySectionText: { fontSize: 13, color: COLORS.text.muted, marginTop: SPACING.sm },
+
+  /* Delivery Card */
+  deliveryCard: {
+    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    marginBottom: SPACING.sm, ...SHADOW.sm,
+  },
+  deliveryTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm },
+  orderIdRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  orderId: { fontSize: 14, fontWeight: '800', color: COLORS.text.primary },
+  statusBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full,
+  },
+  statusDot: { width: 7, height: 7, borderRadius: 4 },
+  statusText: { fontSize: 11, fontWeight: '700' },
+
+  detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 4 },
+  detailText: { fontSize: 13, color: COLORS.text.secondary, flex: 1, lineHeight: 18 },
+
+  actionRow: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
+    marginTop: SPACING.sm, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.border,
+  },
+  assignBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#1565C0', borderRadius: RADIUS.full,
+    paddingHorizontal: 14, paddingVertical: 8,
+  },
+  assignBtnText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
+  deliveredBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
+    paddingHorizontal: 14, paddingVertical: 8,
+  },
+  deliveredBtnText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
+  viewBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 2, marginLeft: 'auto',
+    paddingHorizontal: 10, paddingVertical: 8,
+  },
+  viewBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
+
+  /* Driver Card */
+  driverCard: {
+    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md,
+    marginBottom: SPACING.sm, ...SHADOW.sm,
+  },
+  driverRow: { flexDirection: 'row', gap: SPACING.md },
+  driverAvatar: {
+    width: 44, height: 44, borderRadius: 22,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  driverInfo: { flex: 1 },
+  driverNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  driverName: { fontSize: 15, fontWeight: '700', color: COLORS.text.primary },
+  driverStatusDot: { width: 8, height: 8, borderRadius: 4 },
+  driverStatusText: { fontSize: 11, fontWeight: '600' },
+  driverMeta: { flexDirection: 'row', gap: SPACING.md, marginTop: 6 },
+  driverMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  driverMetaText: { fontSize: 11, color: COLORS.text.muted },
+});
