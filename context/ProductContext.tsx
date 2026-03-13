@@ -20,12 +20,12 @@ const ProductContext = createContext<ProductContextType>({
   products: [],
   isLoading: true,
   getProducts: () => [],
-  addProduct: async () => {},
-  updateProduct: async () => {},
-  deleteProduct: async () => {},
-  toggleStock: async () => {},
+  addProduct: async () => { },
+  updateProduct: async () => { },
+  deleteProduct: async () => { },
+  toggleStock: async () => { },
   getProductsByCategory: () => [],
-  refreshProducts: async () => {},
+  refreshProducts: async () => { },
 });
 
 // Sample products used as initial data
@@ -36,7 +36,7 @@ const SAMPLE_PRODUCTS: Product[] = [
     price: 40,
     originalPrice: 50,
     unit: '500g',
-    image: 'https://images.unsplash.com/photo-1546470427-0d4db154ceb8?w=200',
+    image: 'https://images.unsplash.com/photo-1467020323552-36f7bf0e30e6?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHRvbWF0b2VzfGVufDB8fDB8fHww',
     discount: '20%',
     category: 'vegetables',
     description: 'Farm-fresh red tomatoes, perfect for curries and salads',
@@ -188,7 +188,18 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = await getStoredData<Product[]>(PRODUCTS_KEY, []);
       if (stored.length > 0) {
-        setProducts(stored);
+        // Sync sample product images with latest defaults
+        const sampleMap = new Map(SAMPLE_PRODUCTS.map(p => [p.id, p]));
+        const synced = stored.map(p => {
+          const sample = sampleMap.get(p.id);
+          if (sample && p.image !== sample.image) {
+            return { ...p, image: sample.image };
+          }
+          return p;
+        });
+        const changed = synced.some((p, i) => p.image !== stored[i].image);
+        if (changed) await setStoredData(PRODUCTS_KEY, synced);
+        setProducts(synced);
       } else {
         await setStoredData(PRODUCTS_KEY, SAMPLE_PRODUCTS);
         setProducts(SAMPLE_PRODUCTS);

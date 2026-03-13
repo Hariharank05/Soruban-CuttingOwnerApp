@@ -91,14 +91,19 @@ export default function DashboardScreen() {
               <Text style={[styles.greeting, themed.textSecondary]}>{greeting},</Text>
               <Text style={[styles.ownerName, themed.textPrimary]}>{owner?.name || 'Owner'}</Text>
             </View>
-            <TouchableOpacity style={styles.notifBtn}>
-              <Icon name="bell-outline" size={22} color={COLORS.text.primary} />
-              {stats.pendingOrders > 0 && (
-                <View style={styles.notifBadge}>
-                  <Text style={styles.notifBadgeText}>{stats.pendingOrders}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+            <View style={styles.heroActions}>
+              <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications' as any)}>
+                <Icon name="bell-outline" size={22} color={COLORS.text.primary} />
+                {stats.pendingOrders > 0 && (
+                  <View style={styles.notifBadge}>
+                    <Text style={styles.notifBadgeText}>{stats.pendingOrders}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/(tabs)/more' as any)}>
+                <Icon name="account-circle-outline" size={22} color={COLORS.text.primary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Revenue Card inside hero */}
@@ -298,7 +303,13 @@ const styles = StyleSheet.create({
   heroTextWrap: { flex: 1 },
   greeting: { fontSize: FONTS.sizes.md, fontWeight: '500' },
   ownerName: { fontSize: FONTS.sizes.xxl, fontWeight: '800', marginTop: 2 },
+  heroActions: { flexDirection: 'row', gap: SPACING.sm },
   notifBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  profileBtn: {
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: 'rgba(0,0,0,0.06)',
     justifyContent: 'center', alignItems: 'center',

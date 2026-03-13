@@ -162,28 +162,30 @@ export default function PacksScreen() {
       </View>
 
       {/* Category Filter */}
-      <FlatList
-        horizontal
-        data={CATEGORIES}
-        keyExtractor={c => c.key}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterList}
-        renderItem={({ item: c }) => (
-          <TouchableOpacity
-            style={[styles.filterChip, activeCategory === c.key && styles.filterChipActive]}
-            onPress={() => setActiveCategory(c.key)}
-          >
-            <Icon
-              name={c.icon as any}
-              size={14}
-              color={activeCategory === c.key ? COLORS.primary : COLORS.text.secondary}
-            />
-            <Text style={[styles.filterChipText, activeCategory === c.key && styles.filterChipTextActive]}>
-              {c.label}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={styles.filterWrap}>
+        <FlatList
+          horizontal
+          data={CATEGORIES}
+          keyExtractor={c => c.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+          renderItem={({ item: c }) => (
+            <TouchableOpacity
+              style={[styles.filterChip, activeCategory === c.key && styles.filterChipActive]}
+              onPress={() => setActiveCategory(c.key)}
+            >
+              <Icon
+                name={c.icon as any}
+                size={14}
+                color={activeCategory === c.key ? COLORS.primary : COLORS.text.secondary}
+              />
+              <Text style={[styles.filterChipText, activeCategory === c.key && styles.filterChipTextActive]}>
+                {c.label}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
 
       {/* Count */}
       <View style={styles.countRow}>
@@ -240,6 +242,7 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 10, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
 
   /* Filters */
+  filterWrap: { flexGrow: 0, flexShrink: 0 },
   filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, paddingVertical: SPACING.md, alignItems: 'center' },
   filterChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,

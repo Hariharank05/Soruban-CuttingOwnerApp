@@ -142,17 +142,26 @@ export default function OrdersDashboard() {
             <Text style={[styles.headerTitle, themed.textPrimary]}>Orders</Text>
             <Text style={[styles.headerSub, themed.textSecondary]}>Manage incoming orders</Text>
           </View>
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => router.push('/notifications' as any)}
-          >
-            <Icon name="bell-outline" size={24} color={COLORS.text.primary} />
-            {stats.pending > 0 && (
-              <View style={styles.bellBadge}>
-                <Text style={styles.bellBadgeText}>{stats.pending}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.createPackBtn}
+              onPress={() => router.push('/pack-form' as any)}
+            >
+              <Icon name="package-variant" size={18} color="#FFF" />
+              <Text style={styles.createPackText}>Pack</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => router.push('/notifications' as any)}
+            >
+              <Icon name="bell-outline" size={24} color={COLORS.text.primary} />
+              {stats.pending > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{stats.pending}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
 
@@ -217,6 +226,13 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 24, fontWeight: '800' },
   headerSub: { fontSize: 12, marginTop: 2 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  createPackBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
+    paddingHorizontal: 14, paddingVertical: 8, ...SHADOW.sm,
+  },
+  createPackText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
   bellBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
   bellBadge: { position: 'absolute', top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#E53935', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
   bellBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
