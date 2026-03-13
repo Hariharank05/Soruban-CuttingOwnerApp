@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
 import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { useSubscriptions } from '@/context/SubscriptionContext';
 import { Subscription } from '@/types';
+import { useTabBar } from '@/context/TabBarContext';
 
 type FilterKey = 'all' | 'active' | 'paused' | 'cancelled';
 
@@ -47,6 +48,7 @@ export default function SubscriptionsScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { subscriptions } = useSubscriptions();
+  const { handleScroll } = useTabBar();
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
 
   const stats = useMemo(() => {
@@ -162,23 +164,25 @@ export default function SubscriptionsScreen() {
       </View>
 
       {/* Filter Tabs */}
-      <FlatList
-        horizontal
-        data={FILTERS}
-        keyExtractor={f => f.key}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterList}
-        renderItem={({ item: f }) => (
-          <TouchableOpacity
-            style={[styles.filterChip, activeFilter === f.key && styles.filterChipActive]}
-            onPress={() => setActiveFilter(f.key)}
-          >
-            <Text style={[styles.filterChipText, activeFilter === f.key && styles.filterChipTextActive]}>
-              {f.label}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={styles.filterWrap}>
+        <FlatList
+          horizontal
+          data={FILTERS}
+          keyExtractor={f => f.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+          renderItem={({ item: f }) => (
+            <TouchableOpacity
+              style={[styles.filterChip, activeFilter === f.key && styles.filterChipActive]}
+              onPress={() => setActiveFilter(f.key)}
+            >
+              <Text style={[styles.filterChipText, activeFilter === f.key && styles.filterChipTextActive]}>
+                {f.label}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
 
       {/* Subscription List */}
       <FlatList
@@ -187,6 +191,8 @@ export default function SubscriptionsScreen() {
         renderItem={renderSubscription}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Icon name="calendar-blank-outline" size={56} color={COLORS.text.muted} />
@@ -221,7 +227,8 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 10, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
 
   /* Filters */
-  filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, paddingVertical: SPACING.md },
+  filterWrap: { flexGrow: 0, flexShrink: 0 },
+  filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, paddingVertical: SPACING.md, alignItems: 'center' },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,
     borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',

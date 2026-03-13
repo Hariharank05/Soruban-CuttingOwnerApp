@@ -13,6 +13,7 @@ import { useOrders } from '@/context/OrderContext';
 import { useProducts } from '@/context/ProductContext';
 import { useSubscriptions } from '@/context/SubscriptionContext';
 import { useDeliveries } from '@/context/DeliveryContext';
+import { useTabBar } from '@/context/TabBarContext';
 import { useAuth } from '@/context/AuthContext';
 import { Order } from '@/types';
 
@@ -32,6 +33,7 @@ export default function DashboardScreen() {
   const { products } = useProducts();
   const { subscriptions } = useSubscriptions();
   const { deliveryPersons } = useDeliveries();
+  const { handleScroll } = useTabBar();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const stats = useMemo(() => {
@@ -73,22 +75,24 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#388E3C" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         {/* Hero Header */}
-        <LinearGradient colors={['#388E3C', '#4CAF50']} style={styles.hero}>
+        <LinearGradient colors={themed.headerGradient} style={styles.hero}>
           <View style={styles.heroTop}>
             <View style={styles.heroTextWrap}>
-              <Text style={styles.greeting}>{greeting},</Text>
-              <Text style={styles.ownerName}>{owner?.name || 'Owner'}</Text>
+              <Text style={[styles.greeting, themed.textSecondary]}>{greeting},</Text>
+              <Text style={[styles.ownerName, themed.textPrimary]}>{owner?.name || 'Owner'}</Text>
             </View>
             <TouchableOpacity style={styles.notifBtn}>
-              <Icon name="bell-outline" size={22} color="#FFF" />
+              <Icon name="bell-outline" size={22} color={COLORS.text.primary} />
               {stats.pendingOrders > 0 && (
                 <View style={styles.notifBadge}>
                   <Text style={styles.notifBadgeText}>{stats.pendingOrders}</Text>
@@ -158,7 +162,7 @@ export default function DashboardScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, themed.textPrimary]}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, themed.textPrimary, { marginBottom: SPACING.sm }]}>Quick Actions</Text>
           <View style={styles.actionsRow}>
             <TouchableOpacity style={[styles.actionCard, themed.card]} onPress={() => router.push('/product-form' as any)}>
               <View style={[styles.actionIconWrap, { backgroundColor: '#E8F5E9' }]}>
@@ -192,7 +196,7 @@ export default function DashboardScreen() {
 
         {/* Business Overview */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, themed.textPrimary]}>Business Overview</Text>
+          <Text style={[styles.sectionTitle, themed.textPrimary, { marginBottom: SPACING.sm }]}>Business Overview</Text>
           <View style={styles.overviewGrid}>
             <View style={[styles.overviewCard, themed.card]}>
               <Icon name="food-apple" size={20} color="#4CAF50" />
@@ -289,14 +293,14 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 20 },
 
   /* Hero */
-  hero: { paddingHorizontal: SPACING.base, paddingTop: SPACING.base, paddingBottom: SPACING.xl + 10 },
+  hero: { paddingHorizontal: SPACING.base, paddingTop: SPACING.base, paddingBottom: SPACING.lg },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   heroTextWrap: { flex: 1 },
-  greeting: { fontSize: FONTS.sizes.md, color: 'rgba(255,255,255,0.85)', fontWeight: '500' },
-  ownerName: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: '#FFF', marginTop: 2 },
+  greeting: { fontSize: FONTS.sizes.md, fontWeight: '500' },
+  ownerName: { fontSize: FONTS.sizes.xxl, fontWeight: '800', marginTop: 2 },
   notifBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     justifyContent: 'center', alignItems: 'center',
   },
   notifBadge: {
@@ -307,23 +311,23 @@ const styles = StyleSheet.create({
 
   /* Revenue Card */
   revenueCard: {
-    flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: RADIUS.lg, padding: SPACING.base, marginTop: SPACING.lg,
+    flexDirection: 'row', backgroundColor: '#FFF',
+    borderRadius: RADIUS.lg, padding: SPACING.base, marginTop: SPACING.lg, ...SHADOW.sm,
   },
   revenueMain: { flex: 1, alignItems: 'center' },
-  revenueLabel: { fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '600' },
-  revenueAmount: { fontSize: 22, fontWeight: '800', color: '#FFF', marginTop: 4 },
-  revenueDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 4 },
+  revenueLabel: { fontSize: 11, color: COLORS.text.secondary, fontWeight: '600' },
+  revenueAmount: { fontSize: 22, fontWeight: '800', color: COLORS.primary, marginTop: 4 },
+  revenueDivider: { width: 1, backgroundColor: COLORS.border, marginVertical: 4 },
 
   /* Sections */
   section: { paddingHorizontal: SPACING.base, marginTop: SPACING.lg },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.md },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text.primary, marginBottom: SPACING.sm },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text.primary },
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   seeAllText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
 
   /* Status Grid */
-  statusGrid: { flexDirection: 'row', gap: SPACING.sm, marginTop: -SPACING.xxl },
+  statusGrid: { flexDirection: 'row', gap: SPACING.sm },
   statusCard: {
     flex: 1, borderRadius: RADIUS.lg, padding: SPACING.md,
     alignItems: 'center', ...SHADOW.sm,

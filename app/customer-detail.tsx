@@ -96,12 +96,12 @@ export default function CustomerDetailScreen() {
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
       {/* Header */}
-      <LinearGradient colors={['#388E3C', '#4CAF50']} style={styles.header}>
+      <LinearGradient colors={themed.headerGradient} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Icon name="arrow-left" size={22} color="#FFF" />
+            <Icon name="arrow-left" size={22} color={COLORS.text.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{customer.name}</Text>
+          <Text style={[styles.headerTitle, themed.textPrimary]}>{customer.name}</Text>
           <View style={{ width: 40 }} />
         </View>
       </LinearGradient>
@@ -222,8 +222,8 @@ const styles = StyleSheet.create({
 
   header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.sm, paddingBottom: SPACING.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#FFF' },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 20, fontWeight: '800' },
 
   card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.md, ...SHADOW.sm },
 

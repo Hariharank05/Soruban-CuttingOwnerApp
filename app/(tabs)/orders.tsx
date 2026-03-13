@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
 import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { useOrders } from '@/context/OrderContext';
 import { Order, OwnerOrderStatus } from '@/types';
+import { useTabBar } from '@/context/TabBarContext';
 
 const STATUS_FILTERS: { key: OwnerOrderStatus | 'all'; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -44,6 +45,7 @@ export default function OrdersDashboard() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { orders, refreshOrders } = useOrders();
+  const { handleScroll } = useTabBar();
   const [activeFilter, setActiveFilter] = useState<OwnerOrderStatus | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -134,17 +136,17 @@ export default function OrdersDashboard() {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header */}
-      <LinearGradient colors={['#388E3C', '#4CAF50']} style={styles.header}>
+      <LinearGradient colors={themed.headerGradient} style={styles.header}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>Orders</Text>
-            <Text style={styles.headerSub}>Manage incoming orders</Text>
+            <Text style={[styles.headerTitle, themed.textPrimary]}>Orders</Text>
+            <Text style={[styles.headerSub, themed.textSecondary]}>Manage incoming orders</Text>
           </View>
           <TouchableOpacity
             style={styles.bellBtn}
             onPress={() => router.push('/notifications' as any)}
           >
-            <Icon name="bell-outline" size={24} color="#FFF" />
+            <Icon name="bell-outline" size={24} color={COLORS.text.primary} />
             {stats.pending > 0 && (
               <View style={styles.bellBadge}>
                 <Text style={styles.bellBadgeText}>{stats.pending}</Text>
@@ -155,12 +157,12 @@ export default function OrdersDashboard() {
       </LinearGradient>
 
       {/* Stats Cards */}
-      <View style={styles.statsGrid}>
+      {/* <View style={styles.statsGrid}>
         <StatCard icon="clock-outline" count={stats.pending} label="Pending" color="#E65100" bg="#FFF3E0" />
         <StatCard icon="food-variant" count={stats.preparing} label="Preparing" color="#1565C0" bg="#E3F2FD" />
         <StatCard icon="check-circle-outline" count={stats.ready} label="Ready" color="#388E3C" bg="#E8F5E9" />
         <StatCard icon="truck-check-outline" count={stats.deliveredToday} label="Delivered" color="#4CAF50" bg="#E8F5E9" />
-      </View>
+      </View> */}
 
       {/* Filter Tabs */}
       <View style={styles.filterScroll}>
@@ -190,6 +192,8 @@ export default function OrdersDashboard() {
         renderItem={renderOrder}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -209,16 +213,16 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.background },
 
   /* Header */
-  header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.lg },
+  header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.md },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: '#FFF' },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 },
-  bellBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  bellBadge: { position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#E53935', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
+  headerTitle: { fontSize: 24, fontWeight: '800' },
+  headerSub: { fontSize: 12, marginTop: 2 },
+  bellBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
+  bellBadge: { position: 'absolute', top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#E53935', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
   bellBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
 
   /* Stats */
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.base, marginTop: -SPACING.md, gap: SPACING.sm },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.base, marginTop: SPACING.md, gap: SPACING.sm },
   statCard: {
     flex: 1, minWidth: '45%', borderRadius: RADIUS.lg, padding: SPACING.md,
     alignItems: 'center', ...SHADOW.sm,
@@ -227,8 +231,8 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
 
   /* Filters */
-  filterScroll: { marginTop: SPACING.md },
-  filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm },
+  filterScroll: { marginTop: SPACING.md, flexGrow: 0, flexShrink: 0 },
+  filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, alignItems: 'center' },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,
     borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',

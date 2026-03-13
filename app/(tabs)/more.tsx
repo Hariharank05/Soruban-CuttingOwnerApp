@@ -12,6 +12,7 @@ import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { useAuth } from '@/context/AuthContext';
 import { useOrders } from '@/context/OrderContext';
 import { useProducts } from '@/context/ProductContext';
+import { useTabBar } from '@/context/TabBarContext';
 
 const APP_VERSION = '1.0.0';
 
@@ -25,6 +26,8 @@ type MenuItem = {
 };
 
 const MENU_ITEMS: MenuItem[] = [
+  { icon: 'package-variant', label: 'Packs', route: '/packs', color: '#7B1FA2', bg: '#F3E5F5', subtitle: 'Dish, Salad & Fruit packs' },
+  { icon: 'ticket-percent-outline', label: 'Coupons', route: '/coupons', color: '#C62828', bg: '#FFEBEE', subtitle: 'Offers & discount codes' },
   { icon: 'calendar-sync', label: 'Subscriptions', route: '/(tabs)/subscriptions', color: '#E65100', bg: '#FFF3E0', subtitle: 'Weekly & monthly plans' },
   { icon: 'account-group', label: 'Customers', route: '/customers', color: '#1565C0', bg: '#E3F2FD', subtitle: 'View all customers' },
   { icon: 'wallet', label: 'Payments', route: '/payments', color: '#388E3C', bg: '#E8F5E9', subtitle: 'Payment history & invoices' },
@@ -38,6 +41,7 @@ export default function MoreScreen() {
   const { owner, logout } = useAuth();
   const { orders } = useOrders();
   const { products } = useProducts();
+  const { handleScroll } = useTabBar();
 
   const quickStats = useMemo(() => {
     const today = new Date().toDateString();
@@ -84,19 +88,19 @@ export default function MoreScreen() {
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} onScroll={handleScroll} scrollEventThrottle={16}>
         {/* Owner Header Card */}
-        <LinearGradient colors={['#388E3C', '#4CAF50']} style={styles.ownerHeader}>
+        <LinearGradient colors={themed.headerGradient} style={styles.ownerHeader}>
           <View style={styles.ownerRow}>
             <View style={styles.ownerAvatar}>
-              <Icon name="account" size={28} color="#FFF" />
+              <Icon name="account" size={28} color={COLORS.primary} />
             </View>
             <View style={styles.ownerInfo}>
-              <Text style={styles.ownerName}>{owner?.name || 'Business Owner'}</Text>
-              <Text style={styles.ownerRole}>{owner?.role || 'Owner'}</Text>
+              <Text style={[styles.ownerName, themed.textPrimary]}>{owner?.name || 'Business Owner'}</Text>
+              <Text style={[styles.ownerRole, themed.textSecondary]}>{owner?.role || 'Owner'}</Text>
               {owner?.phone && (
                 <View style={styles.ownerPhoneRow}>
-                  <Icon name="phone-outline" size={12} color="rgba(255,255,255,0.8)" />
+                  <Icon name="phone-outline" size={12} color={COLORS.text.muted} />
                   <Text style={styles.ownerPhone}>{owner.phone}</Text>
                 </View>
               )}
@@ -105,7 +109,7 @@ export default function MoreScreen() {
               style={styles.editProfileBtn}
               onPress={() => router.push('/settings' as any)}
             >
-              <Icon name="pencil-outline" size={18} color="#FFF" />
+              <Icon name="pencil-outline" size={18} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -198,17 +202,17 @@ const styles = StyleSheet.create({
   ownerRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   ownerAvatar: {
     width: 56, height: 56, borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: '#FFF',
     justifyContent: 'center', alignItems: 'center',
   },
   ownerInfo: { flex: 1 },
-  ownerName: { fontSize: 20, fontWeight: '800', color: '#FFF' },
-  ownerRole: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 2 },
+  ownerName: { fontSize: 20, fontWeight: '800' },
+  ownerRole: { fontSize: 13, marginTop: 2 },
   ownerPhoneRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  ownerPhone: { fontSize: 12, color: 'rgba(255,255,255,0.8)' },
+  ownerPhone: { fontSize: 12, color: COLORS.text.muted },
   editProfileBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#FFF',
     justifyContent: 'center', alignItems: 'center',
   },
 

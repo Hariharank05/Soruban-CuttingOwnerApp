@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
 import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { useProducts } from '@/context/ProductContext';
 import { Product } from '@/types';
+import { useTabBar } from '@/context/TabBarContext';
 
 const CATEGORIES = [
   { key: 'all', label: 'All' },
@@ -25,6 +26,7 @@ export default function ProductsScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { products, toggleStock } = useProducts();
+  const { handleScroll } = useTabBar();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
 
@@ -127,23 +129,25 @@ export default function ProductsScreen() {
       </View>
 
       {/* Category Filter */}
-      <FlatList
-        horizontal
-        data={CATEGORIES}
-        keyExtractor={c => c.key}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryList}
-        renderItem={({ item: c }) => (
-          <TouchableOpacity
-            style={[styles.filterChip, activeCategory === c.key && styles.filterChipActive]}
-            onPress={() => setActiveCategory(c.key)}
-          >
-            <Text style={[styles.filterChipText, activeCategory === c.key && styles.filterChipTextActive]}>
-              {c.label}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={styles.categoryFilterWrap}>
+        <FlatList
+          horizontal
+          data={CATEGORIES}
+          keyExtractor={c => c.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryList}
+          renderItem={({ item: c }) => (
+            <TouchableOpacity
+              style={[styles.filterChip, activeCategory === c.key && styles.filterChipActive]}
+              onPress={() => setActiveCategory(c.key)}
+            >
+              <Text style={[styles.filterChipText, activeCategory === c.key && styles.filterChipTextActive]}>
+                {c.label}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
 
       {/* Product count */}
       <View style={styles.countRow}>
@@ -157,6 +161,8 @@ export default function ProductsScreen() {
         renderItem={renderProduct}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Icon name="package-variant" size={56} color={COLORS.text.muted} />
@@ -199,7 +205,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 14, color: COLORS.text.primary, paddingVertical: 0 },
 
   /* Category Filters */
-  categoryList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, paddingVertical: SPACING.md },
+  categoryFilterWrap: { flexGrow: 0, flexShrink: 0 },
+  categoryList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, paddingVertical: SPACING.md, alignItems: 'center' },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,
     borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',

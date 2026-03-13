@@ -12,12 +12,14 @@ import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { useOrders } from '@/context/OrderContext';
 import { useDeliveries } from '@/context/DeliveryContext';
 import { Order } from '@/types';
+import { useTabBar } from '@/context/TabBarContext';
 
 export default function DeliveriesScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { orders, updateOrderStatus } = useOrders();
   const { deliveryPersons, assignDelivery, markDelivered } = useDeliveries();
+  const { handleScroll } = useTabBar();
   const [refreshing, setRefreshing] = useState(false);
 
   const activeDeliveries = useMemo(() => {
@@ -184,6 +186,8 @@ export default function DeliveriesScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         {/* Quick Stats */}

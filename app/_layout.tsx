@@ -12,6 +12,8 @@ import { ProductProvider } from '@/context/ProductContext';
 import { OrderProvider } from '@/context/OrderContext';
 import { SubscriptionProvider } from '@/context/SubscriptionContext';
 import { DeliveryProvider } from '@/context/DeliveryContext';
+import { PackProvider } from '@/context/PackContext';
+import { CouponProvider } from '@/context/CouponContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
@@ -92,6 +94,10 @@ function RootLayoutNav() {
           <Stack.Screen name="customers" />
           <Stack.Screen name="payments" />
           <Stack.Screen name="settings" />
+          <Stack.Screen name="packs" />
+          <Stack.Screen name="pack-form" />
+          <Stack.Screen name="coupons" />
+          <Stack.Screen name="coupon-form" />
         </Stack>
       </View>
     </NavThemeProvider>
@@ -106,9 +112,13 @@ export default function RootLayout() {
           <OrderProvider>
             <SubscriptionProvider>
               <DeliveryProvider>
-                <ErrorBoundary>
-                  <RootLayoutNav />
-                </ErrorBoundary>
+                <PackProvider>
+                  <CouponProvider>
+                    <ErrorBoundary>
+                      <RootLayoutNav />
+                    </ErrorBoundary>
+                  </CouponProvider>
+                </PackProvider>
               </DeliveryProvider>
             </SubscriptionProvider>
           </OrderProvider>

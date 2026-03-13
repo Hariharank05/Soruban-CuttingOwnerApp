@@ -180,3 +180,84 @@ export interface CuttingInstruction {
   weight?: number;
   specialInstructions?: string;
 }
+
+// ─── Pack Item (ingredient in a pack) ───
+export interface PackItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  productId?: string;
+  image?: string;
+}
+
+// ─── Pack Size Option ───
+export interface PackSize {
+  id: string;
+  label: string;
+  serves: string;
+  weightGrams: number;
+  weightLabel: string;
+}
+
+// ─── Regional Variant ───
+export interface RegionalVariant {
+  id: string;
+  name: string;
+  description: string;
+  spiceLevel: 'mild' | 'medium' | 'spicy';
+  extraIngredients?: string[];
+}
+
+// ─── Pack (Dish Pack / Salad Pack / Fruit Pack / Festival Pack) ───
+export type PackCategory = 'dish_pack' | 'salad_pack' | 'fruit_pack' | 'juice_pack' | 'festival_pack';
+
+export interface Pack {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  category: PackCategory;
+  price: number;
+  serves: string;
+  color: string;
+  tag?: string;
+  items: PackItem[];
+  preparationSteps?: string[];
+  cookingVideoUrl?: string;
+  regionalVariants?: RegionalVariant[];
+  isAvailable: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// ─── Coupon / Offer ───
+export type DiscountType = 'percentage' | 'flat';
+
+export interface Coupon {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  discountType: DiscountType;
+  discountValue: number;
+  minOrderValue: number;
+  maxDiscount?: number;
+  validFrom: string;
+  validTo: string;
+  usageLimit: number;
+  usedCount: number;
+  isActive: boolean;
+  category?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// ─── Cut Type Pricing ───
+export interface CutTypePricing {
+  id: CutType;
+  label: string;
+  fee: number;
+  description: string;
+  image?: string;
+}

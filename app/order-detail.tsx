@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, Linking, ActivityIndicator, Modal, FlatList,
+  Alert, Linking, ActivityIndicator, Modal, FlatList, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,12 +22,12 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string; l
   cancelled: { color: '#C62828', bg: '#FFEBEE', icon: 'close-circle-outline', label: 'Cancelled' },
 };
 
-const CUT_TYPE_ICONS: Record<string, { icon: string; label: string }> = {
-  small_pieces: { icon: 'cube-outline', label: 'Small Pieces' },
-  slices: { icon: 'circle-slice-4', label: 'Slices' },
-  cubes: { icon: 'cube', label: 'Cubes' },
-  long_cuts: { icon: 'resize', label: 'Long Cuts' },
-  grated: { icon: 'grain', label: 'Grated' },
+const CUT_TYPE_ICONS: Record<string, { icon: string; label: string; image: string; description: string }> = {
+  small_pieces: { icon: 'cube-outline', label: 'Small Pieces', description: 'Finely chopped for curries & gravies', image: 'https://media.istockphoto.com/id/2249938416/photo/diced-bell-peppers-in-three-colors-pizza-toppings-hd-stock-photo.webp?a=1&b=1&s=612x612&w=0&k=20&c=JPOMHkiFknVzVR1wH1Byglt-owU6KrwDti0rWT50giE=' },
+  slices: { icon: 'circle-slice-4', label: 'Slices', description: 'Even slices for stir-fry & salads', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp1lhK5cvi8am617xdzRjbYlPlYhcc1bVSQg&s' },
+  cubes: { icon: 'cube', label: 'Cubes', description: 'Uniform cubes for biryani & soups', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ezD-KS6iwuiBmghKqB8W4rvTlp1JOB6KL4TSS2YXKQ&s' },
+  long_cuts: { icon: 'resize', label: 'Long Cuts', description: 'Long strips for noodles & fries', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzjZO-U546wb1z9xNy9UauhZef5_PalkHyBCtpgEZ0ag&s' },
+  grated: { icon: 'grain', label: 'Grated', description: 'Finely grated for dosa batter & more', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiCjNUcnt_Ld-3fDMGTtN1kjCSsBRSOFOCKA&s' },
 };
 
 const PAYMENT_CONFIG: Record<string, { color: string; bg: string; icon: string; label: string }> = {
@@ -117,14 +117,14 @@ export default function OrderDetailScreen() {
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
       {/* Header */}
-      <LinearGradient colors={['#388E3C', '#4CAF50']} style={styles.header}>
+      <LinearGradient colors={themed.headerGradient} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Icon name="arrow-left" size={22} color="#FFF" />
+            <Icon name="arrow-left" size={22} color={COLORS.text.primary} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.headerTitle}>Order #{order.id}</Text>
-            <Text style={styles.headerSub}>
+            <Text style={[styles.headerTitle, themed.textPrimary]}>Order #{order.id}</Text>
+            <Text style={[styles.headerSub, themed.textSecondary]}>
               {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
@@ -225,9 +225,15 @@ export default function OrderDetailScreen() {
 
                 {cutInfo && (
                   <View style={styles.cutTypeRow}>
-                    <View style={styles.cutTypeBadge}>
-                      <Icon name={cutInfo.icon as any} size={16} color={COLORS.primary} />
-                      <Text style={styles.cutTypeText}>{cutInfo.label}</Text>
+                    <View style={styles.cutTypeCard}>
+                      <Image source={{ uri: cutInfo.image }} style={styles.cutTypeImage} resizeMode="cover" />
+                      <View style={styles.cutTypeInfo}>
+                        <View style={styles.cutTypeBadge}>
+                          <Icon name={cutInfo.icon as any} size={14} color={COLORS.primary} />
+                          <Text style={styles.cutTypeText}>{cutInfo.label}</Text>
+                        </View>
+                        <Text style={styles.cutTypeDesc}>{cutInfo.description}</Text>
+                      </View>
                     </View>
                   </View>
                 )}
@@ -431,9 +437,9 @@ const styles = StyleSheet.create({
 
   header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.sm, paddingBottom: SPACING.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#FFF' },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 20, fontWeight: '800' },
+  headerSub: { fontSize: 12, marginTop: 2 },
 
   card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.md, ...SHADOW.sm },
 
@@ -464,8 +470,12 @@ const styles = StyleSheet.create({
   productQty: { fontSize: 12, marginTop: 2 },
   itemPrice: { fontSize: 15, fontWeight: '800', color: COLORS.primary },
   cutTypeRow: { marginTop: 8, marginLeft: 50 },
-  cutTypeBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.backgroundSoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.full, alignSelf: 'flex-start' },
-  cutTypeText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
+  cutTypeCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.backgroundSoft, borderRadius: RADIUS.md, padding: SPACING.sm, alignSelf: 'flex-start' },
+  cutTypeImage: { width: 48, height: 48, borderRadius: RADIUS.sm },
+  cutTypeInfo: { flex: 1 },
+  cutTypeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cutTypeText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+  cutTypeDesc: { fontSize: 11, color: COLORS.text.secondary, marginTop: 2 },
   specialBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8, marginLeft: 50, backgroundColor: '#FFF8E1', padding: SPACING.sm, borderRadius: RADIUS.md, borderLeftWidth: 3, borderLeftColor: '#FFA726' },
   specialText: { fontSize: 12, color: '#E65100', fontWeight: '500', flex: 1 },
 

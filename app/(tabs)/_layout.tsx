@@ -4,11 +4,13 @@ import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { COLORS } from '@/src/utils/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { useOrders } from '@/context/OrderContext';
+import { TabBarProvider, useTabBar } from '@/context/TabBarContext';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -16,10 +18,11 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { translateY } = useTabBar();
   const tabBarHeight = 60 + Math.max(insets.bottom, 8);
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.tabBarContainer,
         {
@@ -27,11 +30,14 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           paddingBottom: Math.max(insets.bottom, 8),
           backgroundColor: colors.card,
           borderTopColor: colors.border,
+          transform: [{ translateY }],
         },
       ]}
     >
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
+        // Skip hidden tabs (subscriptions is navigable but not a visible tab)
+        if (route.name === 'subscriptions') return null;
         const label = options.title ?? route.name;
         const isFocused = state.index === index;
         const color = isFocused ? colors.primary : colors.text.muted;
@@ -81,7 +87,7 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           </TouchableOpacity>
         );
       })}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -90,74 +96,76 @@ export default function TabsLayout() {
   const pendingCount = orders.filter(o => o.status === 'pending').length;
 
   return (
-    <View style={styles.flex}>
-      <Tabs
-        tabBar={(props) => <AnimatedTabBar {...props} />}
-        screenOptions={{ headerShown: false }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Home',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="home" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="orders"
-          options={{
-            title: 'Orders',
-            tabBarIcon: ({ color, size }) => (
-              <View>
-                <Icon name="clipboard-list" size={size} color={color} />
-                {pendingCount > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>
-                      {pendingCount}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="products"
-          options={{
-            title: 'Products',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="package-variant" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="deliveries"
-          options={{
-            title: 'Deliveries',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="truck-delivery" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="more"
-          options={{
-            title: 'More',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="dots-horizontal" size={size} color={color} />
-            ),
-          }}
-        />
-        {/* Subscriptions accessible via navigation but hidden from tab bar */}
-        <Tabs.Screen
-          name="subscriptions"
-          options={{
-            href: null,
-          }}
-        />
-      </Tabs>
-    </View>
+    <TabBarProvider>
+      <View style={styles.flex}>
+        <Tabs
+          tabBar={(props) => <AnimatedTabBar {...props} />}
+          screenOptions={{ headerShown: false }}
+        >
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: 'Home',
+              tabBarIcon: ({ color, size }) => (
+                <Icon name="home" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="orders"
+            options={{
+              title: 'Orders',
+              tabBarIcon: ({ color, size }) => (
+                <View>
+                  <Icon name="clipboard-list" size={size} color={color} />
+                  {pendingCount > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>
+                        {pendingCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="products"
+            options={{
+              title: 'Products',
+              tabBarIcon: ({ color, size }) => (
+                <Icon name="package-variant" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="deliveries"
+            options={{
+              title: 'Deliveries',
+              tabBarIcon: ({ color, size }) => (
+                <Icon name="truck-delivery" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="more"
+            options={{
+              title: 'More',
+              tabBarIcon: ({ color, size }) => (
+                <Icon name="account-circle-outline" size={size} color={color} />
+              ),
+            }}
+          />
+          {/* Subscriptions accessible via navigation but hidden from tab bar */}
+          <Tabs.Screen
+            name="subscriptions"
+            options={{
+              href: null,
+            }}
+          />
+        </Tabs>
+      </View>
+    </TabBarProvider>
   );
 }
 
