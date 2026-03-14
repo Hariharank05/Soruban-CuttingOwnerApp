@@ -310,7 +310,6 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md, paddingVertical: 12, fontSize: 15,
-    backgroundColor: '#F7F7F7',
   },
   multilineInput: { minHeight: 80, textAlignVertical: 'top' },
 
@@ -319,7 +318,7 @@ const styles = StyleSheet.create({
   pickerBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pickerText: { fontSize: 15, fontWeight: '500' },
   pickerDropdown: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.sm,
+    borderRadius: RADIUS.lg, padding: SPACING.sm,
     marginBottom: SPACING.base, marginTop: -SPACING.sm, ...SHADOW.md,
     flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs,
   },
@@ -328,7 +327,7 @@ const styles = StyleSheet.create({
   pickerOptionText: { fontSize: 13, fontWeight: '600', color: COLORS.text.secondary },
   pickerOptionTextActive: { color: COLORS.primary },
 
-  card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.base, ...SHADOW.sm },
+  card: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.base, ...SHADOW.sm },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   toggleLabel: { fontSize: 15, fontWeight: '700' },
   toggleDesc: { fontSize: 12, marginTop: 2 },

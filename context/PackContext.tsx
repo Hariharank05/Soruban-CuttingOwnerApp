@@ -4,6 +4,8 @@ import type { Pack, PackCategory } from '@/types';
 import SAMPLE_PACKS from '@/data/packs';
 
 const PACKS_KEY = '@owner_packs';
+const DEMO_PACK_VERSION_KEY = '@demo_pack_version';
+const DEMO_PACK_VERSION = 2;
 
 interface PackContextType {
   packs: Pack[];
@@ -35,12 +37,19 @@ export function PackProvider({ children }: { children: React.ReactNode }) {
 
   const loadPacks = useCallback(async () => {
     try {
-      const stored = await getStoredData<Pack[]>(PACKS_KEY, []);
-      if (stored.length > 0) {
-        setPacks(stored);
-      } else {
+      const storedVersion = await getStoredData<number>(DEMO_PACK_VERSION_KEY, 0);
+      if (storedVersion < DEMO_PACK_VERSION) {
         await setStoredData(PACKS_KEY, SAMPLE_PACKS);
+        await setStoredData(DEMO_PACK_VERSION_KEY, DEMO_PACK_VERSION);
         setPacks(SAMPLE_PACKS);
+      } else {
+        const stored = await getStoredData<Pack[]>(PACKS_KEY, []);
+        if (stored.length > 0) {
+          setPacks(stored);
+        } else {
+          await setStoredData(PACKS_KEY, SAMPLE_PACKS);
+          setPacks(SAMPLE_PACKS);
+        }
       }
     } catch {
       setPacks(SAMPLE_PACKS);

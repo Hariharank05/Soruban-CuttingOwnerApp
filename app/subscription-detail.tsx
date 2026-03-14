@@ -11,23 +11,25 @@ import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
 import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { useSubscriptions } from '@/context/SubscriptionContext';
 
-const FREQ_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  daily: { color: '#388E3C', bg: '#E8F5E9', icon: 'calendar-today' },
-  weekly: { color: '#1565C0', bg: '#E3F2FD', icon: 'calendar-week' },
-  monthly: { color: '#7B1FA2', bg: '#F3E5F5', icon: 'calendar-month' },
-};
+const getFreqConfig = (themed: any): Record<string, { color: string; bg: string; icon: string }> => ({
+  daily: { color: '#388E3C', bg: themed.colors.accentBg.green, icon: 'calendar-today' },
+  weekly: { color: '#1565C0', bg: themed.colors.accentBg.blue, icon: 'calendar-week' },
+  monthly: { color: '#7B1FA2', bg: themed.colors.accentBg.purple, icon: 'calendar-month' },
+});
 
-const STATUS_COLORS: Record<string, { color: string; bg: string; icon: string }> = {
-  active: { color: '#388E3C', bg: '#E8F5E9', icon: 'check-circle' },
-  paused: { color: '#E65100', bg: '#FFF3E0', icon: 'pause-circle' },
-  cancelled: { color: '#C62828', bg: '#FFEBEE', icon: 'close-circle' },
-};
+const getStatusColors = (themed: any): Record<string, { color: string; bg: string; icon: string }> => ({
+  active: { color: '#388E3C', bg: themed.colors.accentBg.green, icon: 'check-circle' },
+  paused: { color: '#E65100', bg: themed.colors.accentBg.orange, icon: 'pause-circle' },
+  cancelled: { color: '#C62828', bg: themed.colors.accentBg.red, icon: 'close-circle' },
+});
 
 export default function SubscriptionDetailScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { subscriptions, updateSubscriptionStatus } = useSubscriptions();
+  const FREQ_CONFIG = useMemo(() => getFreqConfig(themed), [themed]);
+  const STATUS_COLORS = useMemo(() => getStatusColors(themed), [themed]);
 
   const subscription = useMemo(() => {
     return subscriptions.find(s => s.id === id);
@@ -81,7 +83,7 @@ export default function SubscriptionDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -130,7 +132,7 @@ export default function SubscriptionDetailScreen() {
             </View>
 
             <View style={styles.scheduleItem}>
-              <View style={[styles.scheduleIconWrap, { backgroundColor: '#E3F2FD' }]}>
+              <View style={[styles.scheduleIconWrap, { backgroundColor: themed.colors.accentBg.blue }]}>
                 <Icon name="clock-outline" size={20} color="#1565C0" />
               </View>
               <Text style={styles.scheduleLabel}>Preferred Time</Text>
@@ -138,7 +140,7 @@ export default function SubscriptionDetailScreen() {
             </View>
 
             <View style={styles.scheduleItem}>
-              <View style={[styles.scheduleIconWrap, { backgroundColor: '#FFF3E0' }]}>
+              <View style={[styles.scheduleIconWrap, { backgroundColor: themed.colors.accentBg.orange }]}>
                 <Icon name="calendar-start" size={20} color="#E65100" />
               </View>
               <Text style={styles.scheduleLabel}>Start Date</Text>
@@ -149,7 +151,7 @@ export default function SubscriptionDetailScreen() {
 
             {subscription.weeklyDay && (
               <View style={styles.scheduleItem}>
-                <View style={[styles.scheduleIconWrap, { backgroundColor: '#F3E5F5' }]}>
+                <View style={[styles.scheduleIconWrap, { backgroundColor: themed.colors.accentBg.purple }]}>
                   <Icon name="calendar-week" size={20} color="#7B1FA2" />
                 </View>
                 <Text style={styles.scheduleLabel}>Day</Text>
@@ -159,7 +161,7 @@ export default function SubscriptionDetailScreen() {
 
             {subscription.monthlyDates && subscription.monthlyDates.length > 0 && (
               <View style={styles.scheduleItem}>
-                <View style={[styles.scheduleIconWrap, { backgroundColor: '#F3E5F5' }]}>
+                <View style={[styles.scheduleIconWrap, { backgroundColor: themed.colors.accentBg.purple }]}>
                   <Icon name="calendar-month" size={20} color="#7B1FA2" />
                 </View>
                 <Text style={styles.scheduleLabel}>Dates</Text>
@@ -170,7 +172,7 @@ export default function SubscriptionDetailScreen() {
 
           {/* Paused info */}
           {subscription.status === 'paused' && subscription.pausedUntil && (
-            <View style={styles.pausedBanner}>
+            <View style={[styles.pausedBanner, { backgroundColor: themed.colors.accentBg.orange }]}>
               <Icon name="pause-circle-outline" size={18} color="#E65100" />
               <Text style={styles.pausedBannerText}>
                 Paused until {new Date(subscription.pausedUntil).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -196,7 +198,7 @@ export default function SubscriptionDetailScreen() {
                 <View style={styles.itemMeta}>
                   {item.quantity ? <Text style={styles.itemQty}>x{item.quantity}</Text> : null}
                   {item.cutType ? (
-                    <View style={styles.cutTypeBadge}>
+                    <View style={[styles.cutTypeBadge, { backgroundColor: themed.colors.accentBg.purple }]}>
                       <Icon name="content-cut" size={10} color="#7B1FA2" />
                       <Text style={styles.cutTypeText}>{item.cutType.replace(/_/g, ' ')}</Text>
                     </View>
@@ -237,7 +239,7 @@ export default function SubscriptionDetailScreen() {
                   </Text>
                   {skip.reason && <Text style={styles.skipReason}>{skip.reason}</Text>}
                 </View>
-                <View style={[styles.skipStatusBadge, { backgroundColor: skip.status === 'skipped' ? '#FFF3E0' : '#FFEBEE' }]}>
+                <View style={[styles.skipStatusBadge, { backgroundColor: skip.status === 'skipped' ? themed.colors.accentBg.orange : themed.colors.accentBg.red }]}>
                   <Text style={[styles.skipStatusText, { color: skip.status === 'skipped' ? '#E65100' : '#C62828' }]}>
                     {skip.status === 'skipped' ? 'Skipped' : 'Too Late'}
                   </Text>
@@ -290,7 +292,7 @@ const styles = StyleSheet.create({
 
   /* Card */
   card: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    borderRadius: RADIUS.lg, padding: SPACING.base,
     marginBottom: SPACING.md, ...SHADOW.sm,
   },
   cardTitle: { fontSize: 16, fontWeight: '800', color: COLORS.text.primary, marginBottom: SPACING.md },
@@ -326,7 +328,7 @@ const styles = StyleSheet.create({
 
   pausedBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#FFF3E0', borderRadius: RADIUS.md,
+    borderRadius: RADIUS.md,
     padding: SPACING.md, marginTop: SPACING.md,
   },
   pausedBannerText: { fontSize: 13, fontWeight: '600', color: '#E65100', flex: 1 },
@@ -347,7 +349,7 @@ const styles = StyleSheet.create({
   itemQty: { fontSize: 12, fontWeight: '600', color: COLORS.text.secondary },
   cutTypeBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
-    backgroundColor: '#F3E5F5', paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full,
+    paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full,
   },
   cutTypeText: { fontSize: 10, fontWeight: '600', color: '#7B1FA2', textTransform: 'capitalize' },
   itemWeight: { fontSize: 12, color: COLORS.text.muted },
@@ -373,7 +375,7 @@ const styles = StyleSheet.create({
   pauseBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 14, borderRadius: RADIUS.lg,
-    borderWidth: 1.5, borderColor: '#E65100', backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: '#E65100',
     marginBottom: SPACING.sm,
   },
   pauseBtnText: { fontSize: 15, fontWeight: '700', color: '#E65100' },
@@ -388,7 +390,7 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 14, borderRadius: RADIUS.lg,
-    borderWidth: 1.5, borderColor: '#C62828', backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: '#C62828',
   },
   cancelBtnText: { fontSize: 15, fontWeight: '700', color: '#C62828' },
 

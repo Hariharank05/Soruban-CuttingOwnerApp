@@ -21,19 +21,20 @@ const CATEGORIES: { key: PackCategory | 'all'; label: string; icon: string }[] =
   { key: 'festival_pack', label: 'Festival', icon: 'party-popper' },
 ];
 
-const CATEGORY_COLORS: Record<string, { color: string; bg: string }> = {
-  dish_pack: { color: '#E65100', bg: '#FFF3E0' },
-  salad_pack: { color: '#388E3C', bg: '#E8F5E9' },
-  fruit_pack: { color: '#7B1FA2', bg: '#F3E5F5' },
-  juice_pack: { color: '#1565C0', bg: '#E3F2FD' },
-  festival_pack: { color: '#C62828', bg: '#FFEBEE' },
-};
+const getCategoryColors = (themed: any): Record<string, { color: string; bg: string }> => ({
+  dish_pack: { color: '#E65100', bg: themed.colors.accentBg.orange },
+  salad_pack: { color: '#388E3C', bg: themed.colors.accentBg.green },
+  fruit_pack: { color: '#7B1FA2', bg: themed.colors.accentBg.purple },
+  juice_pack: { color: '#1565C0', bg: themed.colors.accentBg.blue },
+  festival_pack: { color: '#C62828', bg: themed.colors.accentBg.red },
+});
 
 export default function PacksScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { packs, toggleAvailability } = usePacks();
   const [activeCategory, setActiveCategory] = useState<PackCategory | 'all'>('all');
+  const CATEGORY_COLORS = useMemo(() => getCategoryColors(themed), [themed]);
 
   const stats = useMemo(() => {
     const total = packs.length;
@@ -113,7 +114,7 @@ export default function PacksScreen() {
           {/* Bottom row */}
           <View style={styles.packBottomRow}>
             <Text style={styles.packPrice}>{'\u20B9'}{item.price}</Text>
-            <View style={[styles.availBadge, { backgroundColor: item.isAvailable ? '#E8F5E9' : '#FFEBEE' }]}>
+            <View style={[styles.availBadge, { backgroundColor: item.isAvailable ? themed.colors.accentBg.green : themed.colors.accentBg.red }]}>
               <View style={[styles.availDot, { backgroundColor: item.isAvailable ? '#4CAF50' : '#E53935' }]} />
               <Text style={[styles.availText, { color: item.isAvailable ? '#388E3C' : '#C62828' }]}>
                 {item.isAvailable ? 'Available' : 'Unavailable'}
@@ -127,7 +128,7 @@ export default function PacksScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -147,15 +148,15 @@ export default function PacksScreen() {
 
       {/* Quick Stats */}
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.green }]}>
           <Text style={[styles.statCount, { color: '#388E3C' }]}>{stats.total}</Text>
           <Text style={styles.statLabel}>Total</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.blue }]}>
           <Text style={[styles.statCount, { color: '#1565C0' }]}>{stats.available}</Text>
           <Text style={styles.statLabel}>Available</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.orange }]}>
           <Text style={[styles.statCount, { color: '#E65100' }]}>{stats.dishPacks}</Text>
           <Text style={styles.statLabel}>Dish Packs</Text>
         </View>
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
   filterChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingVertical: 8, paddingHorizontal: 14, borderRadius: RADIUS.full,
-    borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: COLORS.border,
   },
   filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundSoft },
   filterChipText: { fontSize: 12, fontWeight: '700', color: COLORS.text.secondary },
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
 
   /* Pack Card */
   packCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.lg,
     marginBottom: SPACING.md, overflow: 'hidden', ...SHADOW.sm,
   },
   packImageWrap: { position: 'relative' },

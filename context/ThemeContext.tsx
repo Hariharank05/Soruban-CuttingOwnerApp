@@ -28,6 +28,16 @@ export interface ThemeColors {
     green: readonly [string, string];
     card: readonly [string, string];
   };
+  // Accent tinted backgrounds (pastel in light, translucent in dark)
+  accentBg: {
+    green: string;
+    blue: string;
+    purple: string;
+    orange: string;
+    red: string;
+    gray: string;
+    cyan: string;
+  };
 }
 
 const LIGHT_COLORS: ThemeColors = {
@@ -54,6 +64,15 @@ const LIGHT_COLORS: ThemeColors = {
     green: ['#4CAF50', '#388E3C'] as const,
     card: ['#FFFFFF', '#F9FAFB'] as const,
   },
+  accentBg: {
+    green: '#E8F5E9',
+    blue: '#E3F2FD',
+    purple: '#F3E5F5',
+    orange: '#FFF3E0',
+    red: '#FFEBEE',
+    gray: '#F5F5F5',
+    cyan: '#E0F7FA',
+  },
 };
 
 const DARK_COLORS: ThemeColors = {
@@ -79,6 +98,15 @@ const DARK_COLORS: ThemeColors = {
     hero: ['#1B5E20', '#2E7D32'] as const,
     green: ['#2E7D32', '#1B5E20'] as const,
     card: ['#1E1E1E', '#181818'] as const,
+  },
+  accentBg: {
+    green: 'rgba(76, 175, 80, 0.15)',
+    blue: 'rgba(30, 136, 229, 0.15)',
+    purple: 'rgba(123, 31, 162, 0.15)',
+    orange: 'rgba(255, 167, 38, 0.15)',
+    red: 'rgba(229, 57, 53, 0.15)',
+    gray: 'rgba(255, 255, 255, 0.08)',
+    cyan: 'rgba(0, 188, 212, 0.15)',
   },
 };
 

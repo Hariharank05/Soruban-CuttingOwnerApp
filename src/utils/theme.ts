@@ -38,6 +38,16 @@ export const COLORS = {
     green: ['#4CAF50', '#388E3C'] as const,
     card: ['#FFFFFF', '#F9FAFB'] as const,
   },
+
+  accentBg: {
+    green: '#E8F5E9',
+    blue: '#E3F2FD',
+    purple: '#F3E5F5',
+    orange: '#FFF3E0',
+    red: '#FFEBEE',
+    gray: '#F5F5F5',
+    cyan: '#E0F7FA',
+  },
 };
 
 export const FONTS = {

@@ -62,7 +62,7 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionLabel, themed.textMuted]}>APPEARANCE</Text>
         <View style={[styles.card, themed.card]}>
           <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: isDark ? '#1B3A1D' : '#E8F5E9' }]}>
+            <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.green }]}>
               <Icon name={isDark ? 'weather-night' : 'white-balance-sunny'} size={20} color={COLORS.primary} />
             </View>
             <View style={{ flex: 1 }}>
@@ -132,7 +132,7 @@ export default function SettingsScreen() {
           ) : (
             <>
               <View style={styles.detailRow}>
-                <View style={[styles.settingIcon, { backgroundColor: '#E8F5E9' }]}>
+                <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.green }]}>
                   <Icon name="store" size={20} color={COLORS.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -142,7 +142,7 @@ export default function SettingsScreen() {
               </View>
               <View style={[styles.divider, themed.dividerColor]} />
               <View style={styles.detailRow}>
-                <View style={[styles.settingIcon, { backgroundColor: '#E3F2FD' }]}>
+                <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.blue }]}>
                   <Icon name="phone" size={20} color="#1565C0" />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -152,7 +152,7 @@ export default function SettingsScreen() {
               </View>
               <View style={[styles.divider, themed.dividerColor]} />
               <View style={styles.detailRow}>
-                <View style={[styles.settingIcon, { backgroundColor: '#FFF3E0' }]}>
+                <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.orange }]}>
                   <Icon name="map-marker" size={20} color="#E65100" />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -172,7 +172,7 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionLabel, themed.textMuted]}>NOTIFICATIONS</Text>
         <View style={[styles.card, themed.card]}>
           <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#FFF3E0' }]}>
+            <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.orange }]}>
               <Icon name="bell-ring-outline" size={20} color="#E65100" />
             </View>
             <View style={{ flex: 1 }}>
@@ -190,7 +190,7 @@ export default function SettingsScreen() {
           </View>
           <View style={[styles.divider, themed.dividerColor]} />
           <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#F3E5F5' }]}>
+            <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.purple }]}>
               <Icon name="truck-check-outline" size={20} color="#7B1FA2" />
             </View>
             <View style={{ flex: 1 }}>
@@ -212,7 +212,7 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionLabel, themed.textMuted]}>ABOUT</Text>
         <View style={[styles.card, themed.card]}>
           <View style={styles.detailRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#E8F5E9' }]}>
+            <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.green }]}>
               <Icon name="information-outline" size={20} color={COLORS.primary} />
             </View>
             <View style={{ flex: 1 }}>
@@ -222,7 +222,7 @@ export default function SettingsScreen() {
           </View>
           <View style={[styles.divider, themed.dividerColor]} />
           <TouchableOpacity style={styles.detailRow} onPress={handleSupport}>
-            <View style={[styles.settingIcon, { backgroundColor: '#E3F2FD' }]}>
+            <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.blue }]}>
               <Icon name="headset" size={20} color="#1565C0" />
             </View>
             <View style={{ flex: 1 }}>
@@ -233,7 +233,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           <View style={[styles.divider, themed.dividerColor]} />
           <View style={styles.detailRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#FFF3E0' }]}>
+            <View style={[styles.settingIcon, { backgroundColor: themed.colors.accentBg.orange }]}>
               <Icon name="phone-outline" size={20} color="#E65100" />
             </View>
             <View style={{ flex: 1 }}>
@@ -244,7 +244,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.85}>
+        <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: themed.colors.accentBg.red }]} onPress={handleLogout} activeOpacity={0.85}>
           <Icon name="logout" size={20} color={COLORS.status.error} />
           <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
 
   sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: SPACING.sm, marginTop: SPACING.md, marginLeft: SPACING.xs },
 
-  card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
+  card: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
 
   settingRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
   settingIcon: { width: 40, height: 40, borderRadius: RADIUS.md, justifyContent: 'center', alignItems: 'center' },
@@ -308,7 +308,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 16, borderRadius: RADIUS.lg, marginTop: SPACING.lg,
     borderWidth: 1.5, borderColor: COLORS.status.error,
-    backgroundColor: '#FFEBEE',
   },
   logoutBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.status.error },
 });

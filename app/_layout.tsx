@@ -100,6 +100,7 @@ function RootLayoutNav() {
           <Stack.Screen name="coupon-form" />
           <Stack.Screen name="notifications" />
           <Stack.Screen name="subscription-detail" />
+          <Stack.Screen name="offers" />
         </Stack>
       </View>
     </NavThemeProvider>

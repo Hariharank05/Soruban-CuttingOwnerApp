@@ -79,7 +79,7 @@ export default function DeliveriesScreen() {
             <Icon name="receipt" size={14} color={COLORS.primary} />
             <Text style={styles.orderId}>#ORD-{order.id.slice(-4)}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: isOut ? '#F3E5F5' : '#E8F5E9' }]}>
+          <View style={[styles.statusBadge, { backgroundColor: isOut ? themed.colors.accentBg.purple : themed.colors.accentBg.green }]}>
             <View style={[styles.statusDot, { backgroundColor: isOut ? '#7B1FA2' : '#388E3C' }]} />
             <Text style={[styles.statusText, { color: isOut ? '#7B1FA2' : '#388E3C' }]}>
               {isOut ? 'Out for Delivery' : 'Ready'}
@@ -142,7 +142,7 @@ export default function DeliveriesScreen() {
     return (
       <View style={[styles.driverCard, themed.card]}>
         <View style={styles.driverRow}>
-          <View style={[styles.driverAvatar, { backgroundColor: isAvailable ? '#E8F5E9' : '#FFEBEE' }]}>
+          <View style={[styles.driverAvatar, { backgroundColor: isAvailable ? themed.colors.accentBg.green : themed.colors.accentBg.red }]}>
             <Icon name="account" size={22} color={isAvailable ? '#388E3C' : '#C62828'} />
           </View>
           <View style={styles.driverInfo}>
@@ -175,7 +175,7 @@ export default function DeliveriesScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -192,17 +192,17 @@ export default function DeliveriesScreen() {
       >
         {/* Quick Stats */}
         <View style={styles.quickStats}>
-          <View style={[styles.quickStatCard, { backgroundColor: '#F3E5F5' }]}>
+          <View style={[styles.quickStatCard, { backgroundColor: themed.colors.accentBg.purple }]}>
             <Icon name="truck-delivery" size={18} color="#7B1FA2" />
             <Text style={[styles.quickStatCount, { color: '#7B1FA2' }]}>{outForDelivery.length}</Text>
             <Text style={styles.quickStatLabel}>In Transit</Text>
           </View>
-          <View style={[styles.quickStatCard, { backgroundColor: '#E8F5E9' }]}>
+          <View style={[styles.quickStatCard, { backgroundColor: themed.colors.accentBg.green }]}>
             <Icon name="package-variant" size={18} color="#388E3C" />
             <Text style={[styles.quickStatCount, { color: '#388E3C' }]}>{readyOrders.length}</Text>
             <Text style={styles.quickStatLabel}>Ready</Text>
           </View>
-          <View style={[styles.quickStatCard, { backgroundColor: '#E3F2FD' }]}>
+          <View style={[styles.quickStatCard, { backgroundColor: themed.colors.accentBg.blue }]}>
             <Icon name="account-group" size={18} color="#1565C0" />
             <Text style={[styles.quickStatCount, { color: '#1565C0' }]}>{deliveryPersons?.filter(d => d.isAvailable).length || 0}</Text>
             <Text style={styles.quickStatLabel}>Available</Text>
@@ -286,14 +286,14 @@ const styles = StyleSheet.create({
   sectionBadgeText: { fontSize: 11, fontWeight: '700', color: '#FFF' },
 
   emptySection: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.xl,
+    borderRadius: RADIUS.lg, padding: SPACING.xl,
     alignItems: 'center', ...SHADOW.sm,
   },
   emptySectionText: { fontSize: 13, color: COLORS.text.muted, marginTop: SPACING.sm },
 
   /* Delivery Card */
   deliveryCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    borderRadius: RADIUS.lg, padding: SPACING.base,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   deliveryTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm },
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
 
   /* Driver Card */
   driverCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md,
+    borderRadius: RADIUS.lg, padding: SPACING.md,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   driverRow: { flexDirection: 'row', gap: SPACING.md },

@@ -13,14 +13,14 @@ import { useSubscriptions } from '@/context/SubscriptionContext';
 import customers from '@/data/customers';
 import type { Order } from '@/types';
 
-const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
-  pending: { color: '#E65100', bg: '#FFF3E0' },
-  preparing: { color: '#1565C0', bg: '#E3F2FD' },
-  ready: { color: '#388E3C', bg: '#E8F5E9' },
-  out_for_delivery: { color: '#7B1FA2', bg: '#F3E5F5' },
-  delivered: { color: '#616161', bg: '#F5F5F5' },
-  cancelled: { color: '#C62828', bg: '#FFEBEE' },
-};
+const getStatusConfig = (themed: any): Record<string, { color: string; bg: string }> => ({
+  pending: { color: '#E65100', bg: themed.colors.accentBg.orange },
+  preparing: { color: '#1565C0', bg: themed.colors.accentBg.blue },
+  ready: { color: '#388E3C', bg: themed.colors.accentBg.green },
+  out_for_delivery: { color: '#7B1FA2', bg: themed.colors.accentBg.purple },
+  delivered: { color: '#616161', bg: themed.colors.accentBg.gray },
+  cancelled: { color: '#C62828', bg: themed.colors.accentBg.red },
+});
 
 export default function CustomerDetailScreen() {
   const router = useRouter();
@@ -45,6 +45,8 @@ export default function CustomerDetailScreen() {
   const handleEmail = useCallback(() => {
     if (customer?.email) Linking.openURL(`mailto:${customer.email}`);
   }, [customer]);
+
+  const STATUS_CONFIG = useMemo(() => getStatusConfig(themed), [themed]);
 
   const renderOrder = useCallback(({ item }: { item: Order }) => {
     const cfg = STATUS_CONFIG[item.status] || STATUS_CONFIG.pending;
@@ -77,7 +79,7 @@ export default function CustomerDetailScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, [themed, router]);
+  }, [themed, router, STATUS_CONFIG]);
 
   if (!customer) {
     return (
@@ -177,7 +179,7 @@ export default function CustomerDetailScreen() {
                   return (
                     <View key={sub.id} style={styles.subCard}>
                       <View style={styles.subHeader}>
-                        <View style={[styles.subStatusBadge, { backgroundColor: isActive ? '#E8F5E9' : sub.status === 'paused' ? '#FFF3E0' : '#FFEBEE' }]}>
+                        <View style={[styles.subStatusBadge, { backgroundColor: isActive ? themed.colors.accentBg.green : sub.status === 'paused' ? themed.colors.accentBg.orange : themed.colors.accentBg.red }]}>
                           <Text style={[styles.subStatusText, { color: isActive ? '#388E3C' : sub.status === 'paused' ? '#E65100' : '#C62828' }]}>
                             {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
                           </Text>
@@ -225,7 +227,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '800' },
 
-  card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.md, ...SHADOW.sm },
+  card: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.md, ...SHADOW.sm },
 
   avatarRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: SPACING.md },
   avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.backgroundSoft, justifyContent: 'center', alignItems: 'center' },
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
   addressText: { fontSize: 13, flex: 1 },
 
   statsRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
-  statCard: { flex: 1, backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md, alignItems: 'center', ...SHADOW.sm },
+  statCard: { flex: 1, borderRadius: RADIUS.lg, padding: SPACING.md, alignItems: 'center', ...SHADOW.sm },
   statValue: { fontSize: 16, fontWeight: '800', marginTop: 4 },
   statLabel: { fontSize: 11, fontWeight: '600', marginTop: 2 },
 
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
   subItems: { fontSize: 12, color: COLORS.text.secondary, marginBottom: 4 },
   subAmount: { fontSize: 14, fontWeight: '800', color: COLORS.primary },
 
-  orderCard: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
+  orderCard: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
   orderTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   orderId: { fontSize: 14, fontWeight: '800' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full },

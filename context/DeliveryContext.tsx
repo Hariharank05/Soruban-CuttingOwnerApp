@@ -4,6 +4,8 @@ import type { DeliveryPerson, Order } from '@/types';
 
 const DELIVERY_PERSONS_KEY = '@owner_delivery_persons';
 const DELIVERY_ASSIGNMENTS_KEY = '@owner_delivery_assignments';
+const DEMO_DEL_VERSION_KEY = '@demo_del_version';
+const DEMO_DEL_VERSION = 2;
 
 interface DeliveryAssignment {
   orderId: string;
@@ -45,7 +47,7 @@ const DeliveryContext = createContext<DeliveryContextType>({
   refreshDeliveries: async () => {},
 });
 
-// Sample delivery persons used as initial data
+// Sample delivery persons used as initial data — comprehensive demo set
 const SAMPLE_DELIVERY_PERSONS: DeliveryPerson[] = [
   {
     id: 'drv_001',
@@ -68,7 +70,7 @@ const SAMPLE_DELIVERY_PERSONS: DeliveryPerson[] = [
     name: 'Manoj K',
     phone: '9988776633',
     isAvailable: true,
-    activeDeliveries: 0,
+    activeDeliveries: 1,
     totalDeliveries: 89,
   },
   {
@@ -87,9 +89,26 @@ const SAMPLE_DELIVERY_PERSONS: DeliveryPerson[] = [
     activeDeliveries: 0,
     totalDeliveries: 45,
   },
+  {
+    id: 'drv_006',
+    name: 'Vijay T',
+    phone: '9988776600',
+    isAvailable: true,
+    activeDeliveries: 0,
+    totalDeliveries: 72,
+  },
+  {
+    id: 'drv_007',
+    name: 'Prasad N',
+    phone: '9988776599',
+    isAvailable: false,
+    activeDeliveries: 0,
+    totalDeliveries: 28,
+  },
 ];
 
 const SAMPLE_ASSIGNMENTS: DeliveryAssignment[] = [
+  // Active assignments
   {
     orderId: 'ORD1002',
     driverId: 'drv_001',
@@ -107,11 +126,73 @@ const SAMPLE_ASSIGNMENTS: DeliveryAssignment[] = [
     status: 'assigned',
   },
   {
+    orderId: 'ORD1019',
+    driverId: 'drv_002',
+    driverName: 'Karthik R',
+    driverPhone: '9988776644',
+    assignedAt: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
+    status: 'picked_up',
+  },
+  {
+    orderId: 'ORD1018',
+    driverId: 'drv_003',
+    driverName: 'Manoj K',
+    driverPhone: '9988776633',
+    assignedAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+    status: 'assigned',
+  },
+  // Today's delivered
+  {
     orderId: 'ORD1004',
     driverId: 'drv_002',
     driverName: 'Karthik R',
     driverPhone: '9988776644',
+    assignedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    deliveredAt: new Date(Date.now() - 3.5 * 60 * 60 * 1000).toISOString(),
+    status: 'delivered',
+  },
+  {
+    orderId: 'ORD1006',
+    driverId: 'drv_005',
+    driverName: 'Ravi S',
+    driverPhone: '9988776611',
+    assignedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    deliveredAt: new Date(Date.now() - 4.5 * 60 * 60 * 1000).toISOString(),
+    status: 'delivered',
+  },
+  {
+    orderId: 'ORD1007',
+    driverId: 'drv_001',
+    driverName: 'Suresh M',
+    driverPhone: '9988776655',
+    assignedAt: new Date(Date.now() - 3.5 * 60 * 60 * 1000).toISOString(),
+    deliveredAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    status: 'delivered',
+  },
+  {
+    orderId: 'ORD1008',
+    driverId: 'drv_003',
+    driverName: 'Manoj K',
+    driverPhone: '9988776633',
     assignedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    deliveredAt: new Date(Date.now() - 2.5 * 60 * 60 * 1000).toISOString(),
+    status: 'delivered',
+  },
+  {
+    orderId: 'ORD1009',
+    driverId: 'drv_005',
+    driverName: 'Ravi S',
+    driverPhone: '9988776611',
+    assignedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+    deliveredAt: new Date(Date.now() - 5.5 * 60 * 60 * 1000).toISOString(),
+    status: 'delivered',
+  },
+  {
+    orderId: 'ORD1010',
+    driverId: 'drv_002',
+    driverName: 'Karthik R',
+    driverPhone: '9988776644',
+    assignedAt: new Date(Date.now() - 2.5 * 60 * 60 * 1000).toISOString(),
     deliveredAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     status: 'delivered',
   },
@@ -124,23 +205,34 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
 
   const loadData = useCallback(async () => {
     try {
-      const [storedPersons, storedAssignments] = await Promise.all([
-        getStoredData<DeliveryPerson[]>(DELIVERY_PERSONS_KEY, []),
-        getStoredData<DeliveryAssignment[]>(DELIVERY_ASSIGNMENTS_KEY, []),
-      ]);
-
-      if (storedPersons.length > 0) {
-        setDeliveryPersons(storedPersons);
-      } else {
-        await setStoredData(DELIVERY_PERSONS_KEY, SAMPLE_DELIVERY_PERSONS);
+      const storedVersion = await getStoredData<number>(DEMO_DEL_VERSION_KEY, 0);
+      if (storedVersion < DEMO_DEL_VERSION) {
+        await Promise.all([
+          setStoredData(DELIVERY_PERSONS_KEY, SAMPLE_DELIVERY_PERSONS),
+          setStoredData(DELIVERY_ASSIGNMENTS_KEY, SAMPLE_ASSIGNMENTS),
+          setStoredData(DEMO_DEL_VERSION_KEY, DEMO_DEL_VERSION),
+        ]);
         setDeliveryPersons(SAMPLE_DELIVERY_PERSONS);
-      }
-
-      if (storedAssignments.length > 0) {
-        setAssignments(storedAssignments);
-      } else {
-        await setStoredData(DELIVERY_ASSIGNMENTS_KEY, SAMPLE_ASSIGNMENTS);
         setAssignments(SAMPLE_ASSIGNMENTS);
+      } else {
+        const [storedPersons, storedAssignments] = await Promise.all([
+          getStoredData<DeliveryPerson[]>(DELIVERY_PERSONS_KEY, []),
+          getStoredData<DeliveryAssignment[]>(DELIVERY_ASSIGNMENTS_KEY, []),
+        ]);
+
+        if (storedPersons.length > 0) {
+          setDeliveryPersons(storedPersons);
+        } else {
+          await setStoredData(DELIVERY_PERSONS_KEY, SAMPLE_DELIVERY_PERSONS);
+          setDeliveryPersons(SAMPLE_DELIVERY_PERSONS);
+        }
+
+        if (storedAssignments.length > 0) {
+          setAssignments(storedAssignments);
+        } else {
+          await setStoredData(DELIVERY_ASSIGNMENTS_KEY, SAMPLE_ASSIGNMENTS);
+          setAssignments(SAMPLE_ASSIGNMENTS);
+        }
       }
     } catch {
       setDeliveryPersons(SAMPLE_DELIVERY_PERSONS);

@@ -22,17 +22,17 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'cancelled', label: 'Cancelled' },
 ];
 
-const FREQ_CONFIG: Record<string, { color: string; bg: string }> = {
-  daily: { color: '#388E3C', bg: '#E8F5E9' },
-  weekly: { color: '#1565C0', bg: '#E3F2FD' },
-  monthly: { color: '#7B1FA2', bg: '#F3E5F5' },
-};
+const getFreqConfig = (colors: any): Record<string, { color: string; bg: string }> => ({
+  daily: { color: '#388E3C', bg: colors.accentBg.green },
+  weekly: { color: '#1565C0', bg: colors.accentBg.blue },
+  monthly: { color: '#7B1FA2', bg: colors.accentBg.purple },
+});
 
-const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
-  active: { color: '#388E3C', bg: '#E8F5E9' },
-  paused: { color: '#E65100', bg: '#FFF3E0' },
-  cancelled: { color: '#C62828', bg: '#FFEBEE' },
-};
+const getStatusColors = (colors: any): Record<string, { color: string; bg: string }> => ({
+  active: { color: '#388E3C', bg: colors.accentBg.green },
+  paused: { color: '#E65100', bg: colors.accentBg.orange },
+  cancelled: { color: '#C62828', bg: colors.accentBg.red },
+});
 
 function SummaryCard({ icon, count, label, color, bg }: { icon: string; count: number | string; label: string; color: string; bg: string }) {
   return (
@@ -50,6 +50,9 @@ export default function SubscriptionsScreen() {
   const { subscriptions } = useSubscriptions();
   const { handleScroll } = useTabBar();
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
+
+  const FREQ_CONFIG = useMemo(() => getFreqConfig(themed.colors), [themed.colors]);
+  const STATUS_COLORS = useMemo(() => getStatusColors(themed.colors), [themed.colors]);
 
   const stats = useMemo(() => {
     const active = subscriptions.filter(s => s.status === 'active').length;
@@ -142,7 +145,7 @@ export default function SubscriptionsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -152,14 +155,14 @@ export default function SubscriptionsScreen() {
 
       {/* Summary Cards */}
       <View style={styles.summaryRow}>
-        <SummaryCard icon="play-circle-outline" count={stats.active} label="Active" color="#388E3C" bg="#E8F5E9" />
-        <SummaryCard icon="pause-circle-outline" count={stats.paused} label="Paused" color="#E65100" bg="#FFF3E0" />
+        <SummaryCard icon="play-circle-outline" count={stats.active} label="Active" color="#388E3C" bg={themed.colors.accentBg.green} />
+        <SummaryCard icon="pause-circle-outline" count={stats.paused} label="Paused" color="#E65100" bg={themed.colors.accentBg.orange} />
         <SummaryCard
           icon="currency-inr"
           count={stats.monthlyRevenue > 1000 ? `${(stats.monthlyRevenue / 1000).toFixed(1)}K` : `${stats.monthlyRevenue}`}
           label="Monthly Rev"
           color="#1565C0"
-          bg="#E3F2FD"
+          bg={themed.colors.accentBg.blue}
         />
       </View>
 
@@ -173,7 +176,7 @@ export default function SubscriptionsScreen() {
           contentContainerStyle={styles.filterList}
           renderItem={({ item: f }) => (
             <TouchableOpacity
-              style={[styles.filterChip, activeFilter === f.key && styles.filterChipActive]}
+              style={[styles.filterChip, { backgroundColor: themed.colors.card }, activeFilter === f.key && styles.filterChipActive]}
               onPress={() => setActiveFilter(f.key)}
             >
               <Text style={[styles.filterChipText, activeFilter === f.key && styles.filterChipTextActive]}>
@@ -231,7 +234,7 @@ const styles = StyleSheet.create({
   filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, paddingVertical: SPACING.md, alignItems: 'center' },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,
-    borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: COLORS.border,
   },
   filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundSoft },
   filterChipText: { fontSize: 13, fontWeight: '700', color: COLORS.text.secondary },
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
 
   /* Subscription Card */
   subCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    borderRadius: RADIUS.lg, padding: SPACING.base,
     marginBottom: SPACING.md, ...SHADOW.sm,
   },
   subTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm },

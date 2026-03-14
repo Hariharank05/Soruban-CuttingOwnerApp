@@ -4,6 +4,8 @@ import type { Coupon } from '@/types';
 import SAMPLE_COUPONS from '@/data/coupons';
 
 const COUPONS_KEY = '@owner_coupons';
+const DEMO_COUPON_VERSION_KEY = '@demo_coupon_version';
+const DEMO_COUPON_VERSION = 2;
 
 interface CouponContextType {
   coupons: Coupon[];
@@ -35,12 +37,19 @@ export function CouponProvider({ children }: { children: React.ReactNode }) {
 
   const loadCoupons = useCallback(async () => {
     try {
-      const stored = await getStoredData<Coupon[]>(COUPONS_KEY, []);
-      if (stored.length > 0) {
-        setCoupons(stored);
-      } else {
+      const storedVersion = await getStoredData<number>(DEMO_COUPON_VERSION_KEY, 0);
+      if (storedVersion < DEMO_COUPON_VERSION) {
         await setStoredData(COUPONS_KEY, SAMPLE_COUPONS);
+        await setStoredData(DEMO_COUPON_VERSION_KEY, DEMO_COUPON_VERSION);
         setCoupons(SAMPLE_COUPONS);
+      } else {
+        const stored = await getStoredData<Coupon[]>(COUPONS_KEY, []);
+        if (stored.length > 0) {
+          setCoupons(stored);
+        } else {
+          await setStoredData(COUPONS_KEY, SAMPLE_COUPONS);
+          setCoupons(SAMPLE_COUPONS);
+        }
       }
     } catch {
       setCoupons(SAMPLE_COUPONS);

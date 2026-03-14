@@ -21,18 +21,19 @@ type MenuItem = {
   label: string;
   route: string | null;
   color: string;
-  bg: string;
+  bgKey: 'purple' | 'red' | 'orange' | 'blue' | 'green' | 'gray' | 'cyan';
   subtitle?: string;
 };
 
 const MENU_ITEMS: MenuItem[] = [
-  { icon: 'package-variant', label: 'Packs', route: '/packs', color: '#7B1FA2', bg: '#F3E5F5', subtitle: 'Dish, Salad & Fruit packs' },
-  { icon: 'ticket-percent-outline', label: 'Coupons', route: '/coupons', color: '#C62828', bg: '#FFEBEE', subtitle: 'Offers & discount codes' },
-  { icon: 'calendar-sync', label: 'Subscriptions', route: '/(tabs)/subscriptions', color: '#E65100', bg: '#FFF3E0', subtitle: 'Weekly & monthly plans' },
-  { icon: 'account-group', label: 'Customers', route: '/customers', color: '#1565C0', bg: '#E3F2FD', subtitle: 'View all customers' },
-  { icon: 'wallet', label: 'Payments', route: '/payments', color: '#388E3C', bg: '#E8F5E9', subtitle: 'Payment history & invoices' },
-  { icon: 'cog', label: 'Settings', route: '/settings', color: '#616161', bg: '#F5F5F5', subtitle: 'App preferences & config' },
-  { icon: 'information', label: 'About', route: null, color: '#0277BD', bg: '#E1F5FE', subtitle: `Version ${APP_VERSION}` },
+  { icon: 'package-variant', label: 'Packs', route: '/packs', color: '#7B1FA2', bgKey: 'purple', subtitle: 'Dish, Salad & Fruit packs' },
+  { icon: 'ticket-percent-outline', label: 'Coupons', route: '/coupons', color: '#C62828', bgKey: 'red', subtitle: 'Offers & discount codes' },
+  { icon: 'sale', label: 'Offers', route: '/offers', color: '#E65100', bgKey: 'orange', subtitle: 'Customer view of active offers' },
+  { icon: 'calendar-sync', label: 'Subscriptions', route: '/(tabs)/subscriptions', color: '#E65100', bgKey: 'orange', subtitle: 'Weekly & monthly plans' },
+  { icon: 'account-group', label: 'Customers', route: '/customers', color: '#1565C0', bgKey: 'blue', subtitle: 'View all customers' },
+  { icon: 'wallet', label: 'Payments', route: '/payments', color: '#388E3C', bgKey: 'green', subtitle: 'Payment history & invoices' },
+  { icon: 'cog', label: 'Settings', route: '/settings', color: '#616161', bgKey: 'gray', subtitle: 'App preferences & config' },
+  { icon: 'information', label: 'About', route: null, color: '#0277BD', bgKey: 'cyan', subtitle: `Version ${APP_VERSION}` },
 ];
 
 export default function MoreScreen() {
@@ -86,13 +87,13 @@ export default function MoreScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} onScroll={handleScroll} scrollEventThrottle={16}>
         {/* Owner Header Card */}
         <LinearGradient colors={themed.headerGradient} style={styles.ownerHeader}>
           <View style={styles.ownerRow}>
-            <View style={styles.ownerAvatar}>
+            <View style={[styles.ownerAvatar, { backgroundColor: themed.colors.card }]}>
               <Icon name="account" size={28} color={COLORS.primary} />
             </View>
             <View style={styles.ownerInfo}>
@@ -106,7 +107,7 @@ export default function MoreScreen() {
               )}
             </View>
             <TouchableOpacity
-              style={styles.editProfileBtn}
+              style={[styles.editProfileBtn, { backgroundColor: themed.colors.card }]}
               onPress={() => router.push('/settings' as any)}
             >
               <Icon name="pencil-outline" size={18} color={COLORS.primary} />
@@ -118,7 +119,7 @@ export default function MoreScreen() {
         <View style={styles.statsSection}>
           <Text style={[styles.statsSectionTitle, themed.textPrimary]}>Today's Snapshot</Text>
           <View style={styles.statsGrid}>
-            <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
+            <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.green }]}>
               <Icon name="currency-inr" size={20} color="#388E3C" />
               <Text style={[styles.statValue, { color: '#388E3C' }]}>
                 {quickStats.todayRevenue > 1000
@@ -127,17 +128,17 @@ export default function MoreScreen() {
               </Text>
               <Text style={styles.statLabel}>Revenue</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+            <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.blue }]}>
               <Icon name="receipt" size={20} color="#1565C0" />
               <Text style={[styles.statValue, { color: '#1565C0' }]}>{quickStats.todayOrders}</Text>
               <Text style={styles.statLabel}>Orders</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: '#F3E5F5' }]}>
+            <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.purple }]}>
               <Icon name="account-group" size={20} color="#7B1FA2" />
               <Text style={[styles.statValue, { color: '#7B1FA2' }]}>{quickStats.totalCustomers}</Text>
               <Text style={styles.statLabel}>Customers</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+            <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.orange }]}>
               <Icon name="food-apple" size={20} color="#E65100" />
               <Text style={[styles.statValue, { color: '#E65100' }]}>{quickStats.totalProducts}</Text>
               <Text style={styles.statLabel}>Products</Text>
@@ -154,7 +155,7 @@ export default function MoreScreen() {
               activeOpacity={0.7}
               onPress={() => handleMenuPress(item)}
             >
-              <View style={[styles.menuIconWrap, { backgroundColor: item.bg }]}>
+              <View style={[styles.menuIconWrap, { backgroundColor: themed.colors.accentBg[item.bgKey] }]}>
                 <Icon name={item.icon as any} size={22} color={item.color} />
               </View>
               <View style={styles.menuTextWrap}>
@@ -175,7 +176,7 @@ export default function MoreScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
+        <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: themed.colors.card, borderColor: themed.isDark ? 'rgba(229,57,53,0.3)' : '#FFCDD2' }]} onPress={handleLogout} activeOpacity={0.7}>
           <Icon name="logout" size={20} color="#E53935" />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
@@ -202,7 +203,6 @@ const styles = StyleSheet.create({
   ownerRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   ownerAvatar: {
     width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#FFF',
     justifyContent: 'center', alignItems: 'center',
   },
   ownerInfo: { flex: 1 },
@@ -212,7 +212,6 @@ const styles = StyleSheet.create({
   ownerPhone: { fontSize: 12, color: COLORS.text.muted },
   editProfileBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#FFF',
     justifyContent: 'center', alignItems: 'center',
   },
 
@@ -231,7 +230,7 @@ const styles = StyleSheet.create({
   menuSection: { marginTop: SPACING.lg, paddingHorizontal: SPACING.base },
   menuItem: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    borderRadius: RADIUS.lg, padding: SPACING.base,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   menuIconWrap: {
@@ -252,7 +251,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     marginHorizontal: SPACING.base, marginTop: SPACING.xl,
     paddingVertical: 14, borderRadius: RADIUS.lg,
-    borderWidth: 1.5, borderColor: '#FFCDD2', backgroundColor: '#FFF',
+    borderWidth: 1.5,
   },
   logoutText: { fontSize: 15, fontWeight: '700', color: '#E53935' },
 

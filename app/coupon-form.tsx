@@ -355,7 +355,6 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md, paddingVertical: 12, fontSize: 15,
-    backgroundColor: '#F7F7F7',
   },
   codeInput: { fontSize: 18, fontWeight: '800', letterSpacing: 2 },
   multilineInput: { minHeight: 80, textAlignVertical: 'top' },
@@ -366,7 +365,7 @@ const styles = StyleSheet.create({
   discountTypeBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: 12, borderRadius: RADIUS.md,
-    borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: COLORS.border,
   },
   discountTypeBtnActive: { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundSoft },
   discountTypeBtnText: { fontSize: 13, fontWeight: '700', color: COLORS.text.secondary },
@@ -376,7 +375,7 @@ const styles = StyleSheet.create({
   pickerBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pickerText: { fontSize: 15, fontWeight: '500' },
   pickerDropdown: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.sm,
+    borderRadius: RADIUS.lg, padding: SPACING.sm,
     marginBottom: SPACING.base, marginTop: -SPACING.sm, ...SHADOW.md,
     flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs,
   },
@@ -386,7 +385,7 @@ const styles = StyleSheet.create({
   pickerOptionTextActive: { color: COLORS.primary },
 
   /* Toggle */
-  card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.base, ...SHADOW.sm },
+  card: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.base, ...SHADOW.sm },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   toggleLabel: { fontSize: 15, fontWeight: '700' },
   toggleDesc: { fontSize: 12, marginTop: 2 },

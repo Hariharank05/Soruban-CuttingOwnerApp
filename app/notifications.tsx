@@ -28,12 +28,12 @@ interface Notification {
   params?: Record<string, string>;
 }
 
-const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string; bg: string }> = {
-  order: { icon: 'clipboard-list', color: '#E65100', bg: '#FFF3E0' },
-  stock: { icon: 'alert-circle-outline', color: '#C62828', bg: '#FFEBEE' },
-  subscription: { icon: 'calendar-sync', color: '#1565C0', bg: '#E3F2FD' },
-  delivery: { icon: 'truck-delivery-outline', color: '#7B1FA2', bg: '#F3E5F5' },
-};
+const getTypeConfig = (themed: any): Record<NotificationType, { icon: string; color: string; bg: string }> => ({
+  order: { icon: 'clipboard-list', color: '#E65100', bg: themed.colors.accentBg.orange },
+  stock: { icon: 'alert-circle-outline', color: '#C62828', bg: themed.colors.accentBg.red },
+  subscription: { icon: 'calendar-sync', color: '#1565C0', bg: themed.colors.accentBg.blue },
+  delivery: { icon: 'truck-delivery-outline', color: '#7B1FA2', bg: themed.colors.accentBg.purple },
+});
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -41,6 +41,7 @@ export default function NotificationsScreen() {
   const { orders } = useOrders();
   const { products } = useProducts();
   const { subscriptions } = useSubscriptions();
+  const TYPE_CONFIG = useMemo(() => getTypeConfig(themed), [themed]);
 
   const notifications = useMemo(() => {
     const notifs: Notification[] = [];
@@ -73,7 +74,7 @@ export default function NotificationsScreen() {
         params: { id: order.id },
         icon: 'food-variant',
         color: '#1565C0',
-        bg: '#E3F2FD',
+        bg: themed.colors.accentBg.blue,
       });
     });
 
@@ -123,7 +124,7 @@ export default function NotificationsScreen() {
     });
 
     return notifs;
-  }, [orders, products, subscriptions]);
+  }, [orders, products, subscriptions, TYPE_CONFIG, themed]);
 
   const renderNotification = ({ item }: { item: Notification }) => (
     <TouchableOpacity
@@ -149,7 +150,7 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
 
   notifCard: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    borderRadius: RADIUS.lg, padding: SPACING.base,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   notifIconWrap: {

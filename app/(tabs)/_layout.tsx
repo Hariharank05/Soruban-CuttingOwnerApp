@@ -93,6 +93,7 @@ function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
 export default function TabsLayout() {
   const { orders } = useOrders();
+  const { colors } = useTheme();
   const pendingCount = orders.filter(o => o.status === 'pending').length;
 
   return (
@@ -119,7 +120,7 @@ export default function TabsLayout() {
                 <View>
                   <Icon name="clipboard-list" size={size} color={color} />
                   {pendingCount > 0 && (
-                    <View style={styles.badge}>
+                    <View style={[styles.badge, { borderColor: colors.card }]}>
                       <Text style={styles.badgeText}>
                         {pendingCount}
                       </Text>
@@ -179,9 +180,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     flexDirection: 'row',
-    backgroundColor: '#FFF',
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
     paddingTop: 6,
   },
   tabItem: {
@@ -219,7 +218,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 1.5,
-    borderColor: '#FFF',
   },
   badgeText: {
     color: '#FFF',

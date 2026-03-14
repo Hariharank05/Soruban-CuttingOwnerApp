@@ -137,12 +137,12 @@ export default function CustomersScreen() {
 
       {/* Stats */}
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.green }]}>
           <Icon name="account-group" size={22} color={COLORS.primary} />
           <Text style={[styles.statValue, { color: COLORS.primary }]}>{stats.total}</Text>
           <Text style={styles.statLabel}>Total Customers</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.blue }]}>
           <Icon name="account-check" size={22} color="#1565C0" />
           <Text style={[styles.statValue, { color: '#1565C0' }]}>{stats.active}</Text>
           <Text style={styles.statLabel}>Active This Month</Text>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
 
   listContent: { paddingHorizontal: SPACING.base, paddingTop: SPACING.sm },
 
-  customerCard: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
+  customerCard: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.backgroundSoft, justifyContent: 'center', alignItems: 'center' },
   avatarText: { fontSize: 16, fontWeight: '800', color: COLORS.primary },

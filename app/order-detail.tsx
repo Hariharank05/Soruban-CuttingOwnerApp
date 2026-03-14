@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, Linking, ActivityIndicator, Modal, FlatList, Image,
+  Alert, Linking, ActivityIndicator, Modal, FlatList, Image, StatusBar,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,12 +22,12 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string; l
   cancelled: { color: '#C62828', bg: '#FFEBEE', icon: 'close-circle-outline', label: 'Cancelled' },
 };
 
-const CUT_TYPE_ICONS: Record<string, { icon: string; label: string; image: string; description: string }> = {
-  small_pieces: { icon: 'cube-outline', label: 'Small Pieces', description: 'Finely chopped for curries & gravies', image: 'https://media.istockphoto.com/id/2249938416/photo/diced-bell-peppers-in-three-colors-pizza-toppings-hd-stock-photo.webp?a=1&b=1&s=612x612&w=0&k=20&c=JPOMHkiFknVzVR1wH1Byglt-owU6KrwDti0rWT50giE=' },
-  slices: { icon: 'circle-slice-4', label: 'Slices', description: 'Even slices for stir-fry & salads', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp1lhK5cvi8am617xdzRjbYlPlYhcc1bVSQg&s' },
-  cubes: { icon: 'cube', label: 'Cubes', description: 'Uniform cubes for biryani & soups', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ezD-KS6iwuiBmghKqB8W4rvTlp1JOB6KL4TSS2YXKQ&s' },
-  long_cuts: { icon: 'resize', label: 'Long Cuts', description: 'Long strips for noodles & fries', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzjZO-U546wb1z9xNy9UauhZef5_PalkHyBCtpgEZ0ag&s' },
-  grated: { icon: 'grain', label: 'Grated', description: 'Finely grated for dosa batter & more', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiCjNUcnt_Ld-3fDMGTtN1kjCSsBRSOFOCKA&s' },
+const CUT_TYPE_ICONS: Record<string, { icon: string; label: string; image: string; description: string; videoUrl?: string }> = {
+  small_pieces: { icon: 'cube-outline', label: 'Small Pieces', description: 'Finely chopped for curries & gravies', image: 'https://media.istockphoto.com/id/2249938416/photo/diced-bell-peppers-in-three-colors-pizza-toppings-hd-stock-photo.webp?a=1&b=1&s=612x612&w=0&k=20&c=JPOMHkiFknVzVR1wH1Byglt-owU6KrwDti0rWT50giE=', videoUrl: 'https://media.tenor.com/Bg-Cx0qPzu0AAAAM/chopping-ingredients-tommy-g.gif' },
+  slices: { icon: 'circle-slice-4', label: 'Slices', description: 'Even slices for stir-fry & salads', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp1lhK5cvi8am617xdzRjbYlPlYhcc1bVSQg&s', videoUrl: 'https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyajllMTBiOWg2MGN0ZDB0ZHdyNHc5NWpucnk3Z3Npa2p4OHpmdG9veCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Gcy9nYydfSMhbKQJ8u/200.gif' },
+  cubes: { icon: 'cube', label: 'Cubes', description: 'Uniform cubes for biryani & soups', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ezD-KS6iwuiBmghKqB8W4rvTlp1JOB6KL4TSS2YXKQ&s', videoUrl: 'https://youtube.com/shorts/jSLK4Xm8NDE?si=---BQGV1EHLl8vHA' },
+  long_cuts: { icon: 'resize', label: 'Long Cuts', description: 'Long strips for noodles & fries', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzjZO-U546wb1z9xNy9UauhZef5_PalkHyBCtpgEZ0ag&s', videoUrl: 'https://youtube.com/shorts/H9RjKD4koyU?si=Sd20lGDOyvYW8wDE' },
+  grated: { icon: 'grain', label: 'Grated', description: 'Finely grated for dosa batter & more', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiCjNUcnt_Ld-3fDMGTtN1kjCSsBRSOFOCKA&s', videoUrl: 'https://youtube.com/shorts/O_EPSDecgSY?si=X24D7-77-zka5YSO' },
 };
 
 const PAYMENT_CONFIG: Record<string, { color: string; bg: string; icon: string; label: string }> = {
@@ -46,12 +46,33 @@ export default function OrderDetailScreen() {
 
   const [driverModalVisible, setDriverModalVisible] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [videoModal, setVideoModal] = useState<{ visible: boolean; url: string; label: string }>({ visible: false, url: '', label: '' });
+
+  const themedStatusBg: Record<string, string> = {
+    pending: themed.colors.accentBg.orange,
+    preparing: themed.colors.accentBg.blue,
+    ready: themed.colors.accentBg.green,
+    out_for_delivery: themed.colors.accentBg.purple,
+    delivered: themed.colors.accentBg.gray,
+    cancelled: themed.colors.accentBg.red,
+  };
+
+  const themedPaymentBg: Record<string, string> = {
+    cod: themed.colors.accentBg.orange,
+    upi: themed.colors.accentBg.blue,
+    wallet: themed.colors.accentBg.purple,
+    wallet_partial: themed.colors.accentBg.purple,
+  };
 
   const order = useMemo(() => getOrderById(id || ''), [id, getOrderById]);
   const availableDrivers = useMemo(() => getAvailableDrivers(), [getAvailableDrivers]);
 
   const handleStatusUpdate = useCallback(async (newStatus: OwnerOrderStatus) => {
     if (!order) return;
+    if (newStatus === 'out_for_delivery' && !order.assignedDriver) {
+      Alert.alert('Driver Required', 'Please assign a delivery driver before dispatching the order.');
+      return;
+    }
     setUpdatingStatus(true);
     try {
       await updateOrderStatus(order.id, newStatus);
@@ -116,6 +137,7 @@ export default function OrderDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} />
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
         <View style={styles.headerRow}>
@@ -136,7 +158,7 @@ export default function OrderDetailScreen() {
         <View style={[styles.card, themed.card]}>
           <Text style={[styles.sectionTitle, themed.textPrimary]}>Order Status</Text>
           <View style={styles.statusRow}>
-            <View style={[styles.statusBadgeLg, { backgroundColor: statusCfg.bg }]}>
+            <View style={[styles.statusBadgeLg, { backgroundColor: themedStatusBg[order.status] || statusCfg.bg }]}>
               <Icon name={statusCfg.icon as any} size={20} color={statusCfg.color} />
               <Text style={[styles.statusTextLg, { color: statusCfg.color }]}>{statusCfg.label}</Text>
             </View>
@@ -234,6 +256,23 @@ export default function OrderDetailScreen() {
                         </View>
                         <Text style={styles.cutTypeDesc}>{cutInfo.description}</Text>
                       </View>
+                      {cutInfo.videoUrl && (
+                        <TouchableOpacity
+                          style={styles.watchDemoBtn}
+                          onPress={() => {
+                            const url = cutInfo.videoUrl!;
+                            const isGif = url.endsWith('.gif');
+                            if (isGif) {
+                              setVideoModal({ visible: true, url, label: cutInfo.label });
+                            } else {
+                              Linking.openURL(url);
+                            }
+                          }}
+                        >
+                          <Icon name="play-circle-outline" size={16} color={COLORS.primary} />
+                          <Text style={styles.watchDemoText}>Demo</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
                 )}
@@ -280,7 +319,7 @@ export default function OrderDetailScreen() {
         <View style={[styles.card, themed.card]}>
           <Text style={[styles.sectionTitle, themed.textPrimary]}>Payment</Text>
           <View style={styles.paymentRow}>
-            <View style={[styles.paymentBadge, { backgroundColor: paymentCfg.bg }]}>
+            <View style={[styles.paymentBadge, { backgroundColor: themedPaymentBg[order.paymentMethod] || paymentCfg.bg }]}>
               <Icon name={paymentCfg.icon as any} size={18} color={paymentCfg.color} />
               <Text style={[styles.paymentText, { color: paymentCfg.color }]}>{paymentCfg.label}</Text>
             </View>
@@ -387,6 +426,25 @@ export default function OrderDetailScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
+      {/* Video Demo Modal (for GIF videos) */}
+      <Modal visible={videoModal.visible} transparent animationType="fade" onRequestClose={() => setVideoModal({ visible: false, url: '', label: '' })}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.videoModalContent, themed.card]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, themed.textPrimary]}>{videoModal.label} - Cutting Demo</Text>
+              <TouchableOpacity onPress={() => setVideoModal({ visible: false, url: '', label: '' })}>
+                <Icon name="close" size={24} color={COLORS.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            <Image
+              source={{ uri: videoModal.url }}
+              style={styles.videoGif}
+              resizeMode="contain"
+            />
+          </View>
+        </View>
+      </Modal>
+
       {/* Driver Selection Modal */}
       <Modal visible={driverModalVisible} transparent animationType="slide" onRequestClose={() => setDriverModalVisible(false)}>
         <View style={styles.modalOverlay}>
@@ -441,7 +499,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: '800' },
   headerSub: { fontSize: 12, marginTop: 2 },
 
-  card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.md, ...SHADOW.sm },
+  card: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.md, ...SHADOW.sm },
 
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: SPACING.md },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.md },
@@ -470,7 +528,7 @@ const styles = StyleSheet.create({
   productQty: { fontSize: 12, marginTop: 2 },
   itemPrice: { fontSize: 15, fontWeight: '800', color: COLORS.primary },
   cutTypeRow: { marginTop: 8, marginLeft: 50 },
-  cutTypeCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.backgroundSoft, borderRadius: RADIUS.md, padding: SPACING.sm, alignSelf: 'flex-start' },
+  cutTypeCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.backgroundSoft, borderRadius: RADIUS.md, padding: SPACING.sm, alignSelf: 'stretch' },
   cutTypeImage: { width: 48, height: 48, borderRadius: RADIUS.sm },
   cutTypeInfo: { flex: 1 },
   cutTypeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -520,11 +578,19 @@ const styles = StyleSheet.create({
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.base, maxHeight: '60%' },
+  modalContent: { borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.base, maxHeight: '60%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.base },
   modalTitle: { fontSize: 18, fontWeight: '800' },
   driverCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: SPACING.md, borderRadius: RADIUS.lg, marginBottom: SPACING.sm, borderWidth: 1, borderColor: COLORS.border },
   driverAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.backgroundSoft, justifyContent: 'center', alignItems: 'center' },
   driverCardName: { fontSize: 15, fontWeight: '700' },
   driverCardInfo: { fontSize: 12, marginTop: 2 },
+
+  // Watch Demo
+  watchDemoBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: COLORS.backgroundSoft, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: COLORS.primary },
+  watchDemoText: { fontSize: 11, fontWeight: '700', color: COLORS.primary },
+
+  // Video Modal
+  videoModalContent: { borderRadius: RADIUS.xl, padding: SPACING.base, width: '90%', alignSelf: 'center' },
+  videoGif: { width: '100%', height: 250, borderRadius: RADIUS.md, marginTop: SPACING.sm, backgroundColor: '#000' },
 });

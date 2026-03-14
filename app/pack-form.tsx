@@ -562,7 +562,7 @@ export default function PackFormScreen() {
                 <Text style={styles.variantDesc}>{v.description}</Text>
                 <View style={styles.variantMeta}>
                   <View style={[styles.spiceBadge, {
-                    backgroundColor: v.spiceLevel === 'spicy' ? '#FFEBEE' : v.spiceLevel === 'medium' ? '#FFF3E0' : '#E8F5E9',
+                    backgroundColor: v.spiceLevel === 'spicy' ? themed.colors.accentBg.red : v.spiceLevel === 'medium' ? themed.colors.accentBg.orange : themed.colors.accentBg.green,
                   }]}>
                     <Text style={[styles.spiceText, {
                       color: v.spiceLevel === 'spicy' ? '#C62828' : v.spiceLevel === 'medium' ? '#E65100' : '#388E3C',
@@ -714,7 +714,6 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md, paddingVertical: 12, fontSize: 15,
-    backgroundColor: '#F7F7F7',
   },
   multilineInput: { minHeight: 80, textAlignVertical: 'top' },
   row: { flexDirection: 'row', gap: SPACING.md },
@@ -722,7 +721,7 @@ const styles = StyleSheet.create({
   pickerBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pickerText: { fontSize: 15, fontWeight: '500' },
   pickerDropdown: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.sm,
+    borderRadius: RADIUS.lg, padding: SPACING.sm,
     marginBottom: SPACING.base, marginTop: -SPACING.sm, ...SHADOW.md,
     flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs,
   },
@@ -751,7 +750,7 @@ const styles = StyleSheet.create({
   /* Item card */
   itemCard: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
-    backgroundColor: '#FFF', borderRadius: RADIUS.md, padding: SPACING.md,
+    borderRadius: RADIUS.md, padding: SPACING.md,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   itemInfo: { flex: 1 },
@@ -776,7 +775,7 @@ const styles = StyleSheet.create({
 
   /* Product picker */
   productPickerWrap: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md,
+    borderRadius: RADIUS.lg, padding: SPACING.md,
     marginBottom: SPACING.base, ...SHADOW.md,
   },
   productPickerScroll: { maxHeight: 250 },
@@ -790,7 +789,7 @@ const styles = StyleSheet.create({
 
   /* Custom item form */
   customItemForm: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md,
+    borderRadius: RADIUS.lg, padding: SPACING.md,
     marginBottom: SPACING.base, ...SHADOW.md,
   },
   confirmAddBtn: {
@@ -803,7 +802,7 @@ const styles = StyleSheet.create({
   /* Step card */
   stepCard: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
-    backgroundColor: '#FFF', borderRadius: RADIUS.md, padding: SPACING.md,
+    borderRadius: RADIUS.md, padding: SPACING.md,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   stepNumber: {
@@ -822,7 +821,7 @@ const styles = StyleSheet.create({
   /* Variant card */
   variantCard: {
     flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm,
-    backgroundColor: '#FFF', borderRadius: RADIUS.md, padding: SPACING.md,
+    borderRadius: RADIUS.md, padding: SPACING.md,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   variantInfo: { flex: 1 },
@@ -842,7 +841,7 @@ const styles = StyleSheet.create({
   addVariantBtnText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
 
   variantForm: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md,
+    borderRadius: RADIUS.lg, padding: SPACING.md,
     marginBottom: SPACING.base, ...SHADOW.md,
   },
   spiceRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
@@ -855,7 +854,7 @@ const styles = StyleSheet.create({
   spiceOptionTextActive: { color: COLORS.primary },
 
   /* Toggle */
-  card: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.base, ...SHADOW.sm },
+  card: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.base, ...SHADOW.sm },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   toggleLabel: { fontSize: 15, fontWeight: '700' },
   toggleDesc: { fontSize: 12, marginTop: 2 },

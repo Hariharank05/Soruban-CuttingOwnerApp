@@ -59,7 +59,7 @@ export default function CouponsScreen() {
         {/* Discount info */}
         <View style={styles.discountRow}>
           <View style={[styles.discountBadge, {
-            backgroundColor: item.discountType === 'percentage' ? '#E3F2FD' : '#E8F5E9',
+            backgroundColor: item.discountType === 'percentage' ? themed.colors.accentBg.blue : themed.colors.accentBg.green,
           }]}>
             <Text style={[styles.discountValue, {
               color: item.discountType === 'percentage' ? '#1565C0' : '#388E3C',
@@ -109,7 +109,7 @@ export default function CouponsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -129,15 +129,15 @@ export default function CouponsScreen() {
 
       {/* Quick Stats */}
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.blue }]}>
           <Text style={[styles.statCount, { color: '#1565C0' }]}>{stats.total}</Text>
           <Text style={styles.statLabel}>Total</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.green }]}>
           <Text style={[styles.statCount, { color: '#388E3C' }]}>{stats.active}</Text>
           <Text style={styles.statLabel}>Active</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+        <View style={[styles.statCard, { backgroundColor: themed.colors.accentBg.orange }]}>
           <Text style={[styles.statCount, { color: '#E65100' }]}>{stats.totalUsed}</Text>
           <Text style={styles.statLabel}>Used</Text>
         </View>
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
 
   /* Coupon Card */
   couponCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    borderRadius: RADIUS.lg, padding: SPACING.base,
     marginBottom: SPACING.md, ...SHADOW.sm,
   },
   expiredCard: { opacity: 0.6 },

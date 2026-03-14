@@ -17,12 +17,12 @@ import { useTabBar } from '@/context/TabBarContext';
 import { useAuth } from '@/context/AuthContext';
 import { Order } from '@/types';
 
-const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  pending: { color: '#E65100', bg: '#FFF3E0', icon: 'clock-outline' },
-  preparing: { color: '#1565C0', bg: '#E3F2FD', icon: 'food-variant' },
-  ready: { color: '#388E3C', bg: '#E8F5E9', icon: 'check-circle-outline' },
-  out_for_delivery: { color: '#7B1FA2', bg: '#F3E5F5', icon: 'truck-delivery-outline' },
-  delivered: { color: '#616161', bg: '#F5F5F5', icon: 'package-variant-closed' },
+const STATUS_CONFIG_BASE: Record<string, { color: string; icon: string; bgKey: keyof typeof COLORS.accentBg }> = {
+  pending: { color: '#E65100', icon: 'clock-outline', bgKey: 'orange' },
+  preparing: { color: '#1565C0', icon: 'food-variant', bgKey: 'blue' },
+  ready: { color: '#388E3C', icon: 'check-circle-outline', bgKey: 'green' },
+  out_for_delivery: { color: '#7B1FA2', icon: 'truck-delivery-outline', bgKey: 'purple' },
+  delivered: { color: '#616161', icon: 'package-variant-closed', bgKey: 'gray' },
 };
 
 export default function DashboardScreen() {
@@ -73,18 +73,23 @@ export default function DashboardScreen() {
     return 'Good Evening';
   }, []);
 
+  const initials = useMemo(() => {
+    const name = owner?.name || 'O';
+    return name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+  }, [owner]);
+
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={themed.colors.primary} />}
       >
-        {/* Hero Header */}
+        {/* ── Hero Header ── */}
         <LinearGradient colors={themed.headerGradient} style={styles.hero}>
           <View style={styles.heroTop}>
             <View style={styles.heroTextWrap}>
@@ -92,199 +97,222 @@ export default function DashboardScreen() {
               <Text style={[styles.ownerName, themed.textPrimary]}>{owner?.name || 'Owner'}</Text>
             </View>
             <View style={styles.heroActions}>
-              <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications' as any)}>
-                <Icon name="bell-outline" size={22} color={COLORS.text.primary} />
+              <TouchableOpacity style={[styles.notifBtn, { backgroundColor: themed.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' }]} onPress={() => router.push('/notifications' as any)}>
+                <Icon name="bell-outline" size={22} color={themed.colors.text.primary} />
                 {stats.pendingOrders > 0 && (
                   <View style={styles.notifBadge}>
                     <Text style={styles.notifBadgeText}>{stats.pendingOrders}</Text>
                   </View>
                 )}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/(tabs)/more' as any)}>
-                <Icon name="account-circle-outline" size={22} color={COLORS.text.primary} />
+              <TouchableOpacity onPress={() => router.push('/(tabs)/more' as any)}>
+                <View style={styles.avatarCircle}>
+                  <Text style={styles.avatarText}>{initials}</Text>
+                </View>
               </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Revenue Card inside hero */}
-          <View style={styles.revenueCard}>
-            <View style={styles.revenueMain}>
-              <Text style={styles.revenueLabel}>Today's Revenue</Text>
-              <Text style={styles.revenueAmount}>{'\u20B9'}{stats.todayRevenue.toLocaleString('en-IN')}</Text>
-            </View>
-            <View style={styles.revenueDivider} />
-            <View style={styles.revenueMain}>
-              <Text style={styles.revenueLabel}>Total Revenue</Text>
-              <Text style={styles.revenueAmount}>{'\u20B9'}{stats.totalRevenue.toLocaleString('en-IN')}</Text>
             </View>
           </View>
         </LinearGradient>
 
-        {/* Order Status Overview */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, themed.textPrimary]}>Order Status</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/orders' as any)} style={styles.seeAllBtn}>
-              <Text style={styles.seeAllText}>See All</Text>
-              <Icon name="chevron-right" size={16} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.statusGrid}>
-            <TouchableOpacity style={[styles.statusCard, { backgroundColor: '#FFF3E0' }]} onPress={() => router.push('/(tabs)/orders' as any)}>
-              <View style={[styles.statusIconWrap, { backgroundColor: '#FFE0B2' }]}>
-                <Icon name="clock-outline" size={22} color="#E65100" />
-              </View>
-              <Text style={[styles.statusCount, { color: '#E65100' }]}>{stats.pendingOrders}</Text>
-              <Text style={styles.statusLabel}>Pending</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.statusCard, { backgroundColor: '#E3F2FD' }]} onPress={() => router.push('/(tabs)/orders' as any)}>
-              <View style={[styles.statusIconWrap, { backgroundColor: '#BBDEFB' }]}>
-                <Icon name="food-variant" size={22} color="#1565C0" />
-              </View>
-              <Text style={[styles.statusCount, { color: '#1565C0' }]}>{stats.preparingOrders}</Text>
-              <Text style={styles.statusLabel}>Preparing</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.statusCard, { backgroundColor: '#E8F5E9' }]} onPress={() => router.push('/(tabs)/orders' as any)}>
-              <View style={[styles.statusIconWrap, { backgroundColor: '#C8E6C9' }]}>
-                <Icon name="check-circle-outline" size={22} color="#388E3C" />
-              </View>
-              <Text style={[styles.statusCount, { color: '#388E3C' }]}>{stats.readyOrders}</Text>
-              <Text style={styles.statusLabel}>Ready</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.statusCard, { backgroundColor: '#F3E5F5' }]} onPress={() => router.push('/(tabs)/deliveries' as any)}>
-              <View style={[styles.statusIconWrap, { backgroundColor: '#E1BEE7' }]}>
-                <Icon name="truck-delivery-outline" size={22} color="#7B1FA2" />
-              </View>
-              <Text style={[styles.statusCount, { color: '#7B1FA2' }]}>{stats.outForDelivery}</Text>
-              <Text style={styles.statusLabel}>In Transit</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, themed.textPrimary, { marginBottom: SPACING.sm }]}>Quick Actions</Text>
-          <View style={styles.actionsRow}>
-            <TouchableOpacity style={[styles.actionCard, themed.card]} onPress={() => router.push('/product-form' as any)}>
-              <View style={[styles.actionIconWrap, { backgroundColor: '#E8F5E9' }]}>
-                <Icon name="plus-circle" size={24} color="#388E3C" />
-              </View>
-              <Text style={[styles.actionLabel, themed.textPrimary]}>Add Product</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.actionCard, themed.card]} onPress={() => router.push('/(tabs)/orders' as any)}>
-              <View style={[styles.actionIconWrap, { backgroundColor: '#FFF3E0' }]}>
-                <Icon name="clipboard-list" size={24} color="#E65100" />
-              </View>
-              <Text style={[styles.actionLabel, themed.textPrimary]}>View Orders</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.actionCard, themed.card]} onPress={() => router.push('/customers' as any)}>
-              <View style={[styles.actionIconWrap, { backgroundColor: '#E3F2FD' }]}>
-                <Icon name="account-group" size={24} color="#1565C0" />
-              </View>
-              <Text style={[styles.actionLabel, themed.textPrimary]}>Customers</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.actionCard, themed.card]} onPress={() => router.push('/payments' as any)}>
-              <View style={[styles.actionIconWrap, { backgroundColor: '#F3E5F5' }]}>
-                <Icon name="wallet" size={24} color="#7B1FA2" />
-              </View>
-              <Text style={[styles.actionLabel, themed.textPrimary]}>Payments</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Business Overview */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, themed.textPrimary, { marginBottom: SPACING.sm }]}>Business Overview</Text>
-          <View style={styles.overviewGrid}>
-            <View style={[styles.overviewCard, themed.card]}>
-              <Icon name="food-apple" size={20} color="#4CAF50" />
-              <Text style={[styles.overviewValue, themed.textPrimary]}>{stats.totalProducts}</Text>
-              <Text style={styles.overviewLabel}>Products</Text>
-              {stats.lowStock > 0 && (
-                <View style={styles.overviewAlert}>
-                  <Icon name="alert-circle" size={12} color="#E53935" />
-                  <Text style={styles.overviewAlertText}>{stats.lowStock} out of stock</Text>
-                </View>
-              )}
-            </View>
-
-            <View style={[styles.overviewCard, themed.card]}>
-              <Icon name="calendar-sync" size={20} color="#1565C0" />
-              <Text style={[styles.overviewValue, themed.textPrimary]}>{stats.activeSubscriptions}</Text>
-              <Text style={styles.overviewLabel}>Active Subs</Text>
-            </View>
-
-            <View style={[styles.overviewCard, themed.card]}>
-              <Icon name="truck-check" size={20} color="#7B1FA2" />
-              <Text style={[styles.overviewValue, themed.textPrimary]}>{stats.deliveredToday}</Text>
-              <Text style={styles.overviewLabel}>Delivered Today</Text>
-            </View>
-
-            <View style={[styles.overviewCard, themed.card]}>
-              <Icon name="account-group" size={20} color="#E65100" />
-              <Text style={[styles.overviewValue, themed.textPrimary]}>{stats.availableDrivers}</Text>
-              <Text style={styles.overviewLabel}>Drivers Available</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Recent Orders */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, themed.textPrimary]}>Recent Orders</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/orders' as any)} style={styles.seeAllBtn}>
-              <Text style={styles.seeAllText}>See All</Text>
-              <Icon name="chevron-right" size={16} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {recentOrders.length === 0 ? (
-            <View style={[styles.emptyCard, themed.card]}>
-              <Icon name="clipboard-text-outline" size={40} color={COLORS.text.muted} />
-              <Text style={styles.emptyText}>No orders yet</Text>
-            </View>
-          ) : (
-            recentOrders.map((order) => {
-              const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-              return (
-                <TouchableOpacity
-                  key={order.id}
-                  style={[styles.recentOrderCard, themed.card]}
-                  activeOpacity={0.8}
-                  onPress={() => router.push({ pathname: '/order-detail', params: { id: order.id } })}
-                >
-                  <View style={[styles.recentOrderIcon, { backgroundColor: config.bg }]}>
-                    <Icon name={config.icon as any} size={20} color={config.color} />
+        {/* ── Revenue Card ── */}
+        <View style={styles.revenueWrap}>
+          <View style={styles.revenueCard}>
+            <LinearGradient
+              colors={['#2E7D32', '#43A047']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.revenueGradient}
+            >
+              <View style={styles.revenueRow}>
+                <View style={styles.revenueCol}>
+                  <View style={styles.revenueLabelRow}>
+                    <Icon name="chart-line" size={14} color="rgba(255,255,255,0.7)" />
+                    <Text style={styles.revenueLabel}>Today</Text>
                   </View>
-                  <View style={styles.recentOrderInfo}>
-                    <View style={styles.recentOrderTop}>
-                      <Text style={[styles.recentOrderId, themed.textPrimary]}>#ORD-{order.id.slice(-4)}</Text>
-                      <View style={[styles.recentStatusBadge, { backgroundColor: config.bg }]}>
-                        <Text style={[styles.recentStatusText, { color: config.color }]}>
-                          {order.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                        </Text>
+                  <Text style={styles.revenueAmount}>{'\u20B9'}{stats.todayRevenue.toLocaleString('en-IN')}</Text>
+                </View>
+                <View style={styles.revenueDivider} />
+                <View style={styles.revenueCol}>
+                  <View style={styles.revenueLabelRow}>
+                    <Icon name="finance" size={14} color="rgba(255,255,255,0.7)" />
+                    <Text style={styles.revenueLabel}>Total Revenue</Text>
+                  </View>
+                  <Text style={styles.revenueAmount}>{'\u20B9'}{stats.totalRevenue.toLocaleString('en-IN')}</Text>
+                </View>
+              </View>
+              <View style={styles.revenueFooter}>
+                <Icon name="trending-up" size={14} color="rgba(255,255,255,0.6)" />
+                <Text style={styles.revenueFooterText}>{stats.deliveredToday} orders delivered today</Text>
+              </View>
+            </LinearGradient>
+          </View>
+        </View>
+
+        {/* ── Order Status Card ── */}
+        <View style={styles.cardSection}>
+          <View style={[styles.card, themed.card]}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleDot, { backgroundColor: '#E65100' }]} />
+                <Text style={[styles.cardTitle, themed.textPrimary]}>Order Status</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/orders' as any)} style={styles.cardLink}>
+                <Text style={[styles.cardLinkText, { color: themed.colors.primary }]}>See All</Text>
+                <Icon name="chevron-right" size={16} color={themed.colors.primary} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.statusGrid}>
+              {[
+                { count: stats.pendingOrders, label: 'Pending', icon: 'clock-outline', color: '#E65100', bg: themed.colors.accentBg.orange, accent: themed.colors.accentBg.orange, route: '/(tabs)/orders' },
+                { count: stats.preparingOrders, label: 'Preparing', icon: 'food-variant', color: '#1565C0', bg: themed.colors.accentBg.blue, accent: themed.colors.accentBg.blue, route: '/(tabs)/orders' },
+                { count: stats.readyOrders, label: 'Ready', icon: 'check-circle-outline', color: '#388E3C', bg: themed.colors.accentBg.green, accent: themed.colors.accentBg.green, route: '/(tabs)/orders' },
+                { count: stats.outForDelivery, label: 'In Transit', icon: 'truck-delivery-outline', color: '#7B1FA2', bg: themed.colors.accentBg.purple, accent: themed.colors.accentBg.purple, route: '/(tabs)/deliveries' },
+              ].map((item) => (
+                <TouchableOpacity
+                  key={item.label}
+                  style={[styles.statusCard, { backgroundColor: item.bg }]}
+                  onPress={() => router.push(item.route as any)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.statusIconWrap, { backgroundColor: item.accent }]}>
+                    <Icon name={item.icon as any} size={20} color={item.color} />
+                  </View>
+                  <Text style={[styles.statusCount, { color: item.color }]}>{item.count}</Text>
+                  <Text style={[styles.statusLabel, { color: item.color }]}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* ── Quick Actions Card ── */}
+        <View style={styles.cardSection}>
+          <View style={[styles.card, themed.card]}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleDot, { backgroundColor: themed.colors.accent }]} />
+                <Text style={[styles.cardTitle, themed.textPrimary]}>Quick Actions</Text>
+              </View>
+            </View>
+            <View style={styles.actionsGrid}>
+              {[
+                { icon: 'plus-circle-outline', label: 'Add Product', color: '#388E3C', bg: themed.colors.accentBg.green, route: '/product-form' },
+                { icon: 'clipboard-list-outline', label: 'Orders', color: '#E65100', bg: themed.colors.accentBg.orange, route: '/(tabs)/orders' },
+                { icon: 'account-group-outline', label: 'Customers', color: '#1565C0', bg: themed.colors.accentBg.blue, route: '/customers' },
+                { icon: 'wallet-outline', label: 'Payments', color: '#7B1FA2', bg: themed.colors.accentBg.purple, route: '/payments' },
+                { icon: 'package-variant', label: 'Packs', color: '#C62828', bg: themed.colors.accentBg.red, route: '/packs' },
+                { icon: 'sale', label: 'Offers', color: '#00838F', bg: themed.colors.accentBg.cyan, route: '/offers' },
+              ].map((item) => (
+                <TouchableOpacity
+                  key={item.label}
+                  style={styles.actionItem}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(item.route as any)}
+                >
+                  <View style={[styles.actionIconWrap, { backgroundColor: item.bg }]}>
+                    <Icon name={item.icon as any} size={22} color={item.color} />
+                  </View>
+                  <Text style={[styles.actionLabel, themed.textPrimary]}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* ── Business Overview Card ── */}
+        <View style={styles.cardSection}>
+          <View style={[styles.card, themed.card]}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleDot, { backgroundColor: '#1565C0' }]} />
+                <Text style={[styles.cardTitle, themed.textPrimary]}>Business Overview</Text>
+              </View>
+            </View>
+            <View style={styles.overviewGrid}>
+              {[
+                { icon: 'food-apple', label: 'Products', value: stats.totalProducts, color: '#388E3C', bg: themed.colors.accentBg.green, alert: stats.lowStock > 0 ? `${stats.lowStock} out of stock` : null },
+                { icon: 'calendar-sync', label: 'Active Subs', value: stats.activeSubscriptions, color: '#1565C0', bg: themed.colors.accentBg.blue, alert: null },
+                { icon: 'truck-check', label: 'Delivered Today', value: stats.deliveredToday, color: '#7B1FA2', bg: themed.colors.accentBg.purple, alert: null },
+                { icon: 'motorbike', label: 'Drivers Online', value: stats.availableDrivers, color: '#E65100', bg: themed.colors.accentBg.orange, alert: null },
+              ].map((item) => (
+                <View key={item.label} style={[styles.overviewItem, { borderBottomColor: themed.colors.divider }]}>
+                  <View style={[styles.overviewIconWrap, { backgroundColor: item.bg }]}>
+                    <Icon name={item.icon as any} size={18} color={item.color} />
+                  </View>
+                  <View style={styles.overviewTextCol}>
+                    <Text style={[styles.overviewValue, themed.textPrimary]}>{item.value}</Text>
+                    <Text style={[styles.overviewLabel, { color: themed.colors.text.secondary }]}>{item.label}</Text>
+                  </View>
+                  {item.alert && (
+                    <View style={styles.overviewAlert}>
+                      <View style={styles.alertDot} />
+                      <Text style={styles.overviewAlertText}>{item.alert}</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* ── Recent Orders Card ── */}
+        <View style={styles.cardSection}>
+          <View style={[styles.card, themed.card]}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardTitleRow}>
+                <View style={[styles.cardTitleDot, { backgroundColor: '#7B1FA2' }]} />
+                <Text style={[styles.cardTitle, themed.textPrimary]}>Recent Orders</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/orders' as any)} style={styles.cardLink}>
+                <Text style={[styles.cardLinkText, { color: themed.colors.primary }]}>See All</Text>
+                <Icon name="chevron-right" size={16} color={themed.colors.primary} />
+              </TouchableOpacity>
+            </View>
+
+            {recentOrders.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Icon name="clipboard-text-outline" size={40} color={themed.colors.text.muted} />
+                <Text style={[styles.emptyText, { color: themed.colors.text.muted }]}>No orders yet</Text>
+              </View>
+            ) : (
+              recentOrders.map((order, idx) => {
+                const base = STATUS_CONFIG_BASE[order.status] || STATUS_CONFIG_BASE.pending;
+                const config = { ...base, bg: themed.colors.accentBg[base.bgKey] };
+                return (
+                  <TouchableOpacity
+                    key={order.id}
+                    style={[styles.orderRow, idx < recentOrders.length - 1 && styles.orderRowBorder, idx < recentOrders.length - 1 && { borderBottomColor: themed.colors.divider }]}
+                    activeOpacity={0.7}
+                    onPress={() => router.push({ pathname: '/order-detail', params: { id: order.id } })}
+                  >
+                    <View style={[styles.orderIcon, { backgroundColor: config.bg }]}>
+                      <Icon name={config.icon as any} size={18} color={config.color} />
+                    </View>
+                    <View style={styles.orderInfo}>
+                      <View style={styles.orderTopRow}>
+                        <Text style={[styles.orderId, themed.textPrimary]}>#ORD-{order.id.slice(-4)}</Text>
+                        <View style={[styles.orderBadge, { backgroundColor: config.bg }]}>
+                          <View style={[styles.badgeDot, { backgroundColor: config.color }]} />
+                          <Text style={[styles.badgeText, { color: config.color }]}>
+                            {order.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.orderCustomer, { color: themed.colors.text.secondary }]}>{order.customerName}</Text>
+                      <View style={styles.orderBottomRow}>
+                        <View style={styles.orderTimePill}>
+                          <Icon name="clock-outline" size={11} color={themed.colors.text.muted} />
+                          <Text style={[styles.orderTime, { color: themed.colors.text.muted }]}>{order.deliverySlot}</Text>
+                        </View>
+                        <Text style={[styles.orderTotal, { color: themed.colors.primary }]}>{'\u20B9'}{order.total}</Text>
                       </View>
                     </View>
-                    <Text style={styles.recentOrderCustomer}>{order.customerName}</Text>
-                    <View style={styles.recentOrderBottom}>
-                      <Text style={styles.recentOrderTime}>
-                        <Icon name="clock-outline" size={11} color={COLORS.text.muted} /> {order.deliverySlot}
-                      </Text>
-                      <Text style={styles.recentOrderTotal}>{'\u20B9'}{order.total}</Text>
-                    </View>
-                  </View>
-                  <Icon name="chevron-right" size={18} color={COLORS.text.muted} />
-                </TouchableOpacity>
-              );
-            })
-          )}
+                    <Icon name="chevron-right" size={18} color={themed.colors.text.muted} />
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </View>
         </View>
 
         <View style={{ height: 100 }} />
@@ -297,106 +325,134 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.background },
   scrollContent: { paddingBottom: 20 },
 
-  /* Hero */
-  hero: { paddingHorizontal: SPACING.base, paddingTop: SPACING.base, paddingBottom: SPACING.lg },
+  /* ── Hero ── */
+  hero: { paddingHorizontal: SPACING.base, paddingTop: SPACING.base, paddingBottom: SPACING.md },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   heroTextWrap: { flex: 1 },
   greeting: { fontSize: FONTS.sizes.md, fontWeight: '500' },
   ownerName: { fontSize: FONTS.sizes.xxl, fontWeight: '800', marginTop: 2 },
-  heroActions: { flexDirection: 'row', gap: SPACING.sm },
+  heroActions: { flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' },
   notifBtn: {
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: 'rgba(0,0,0,0.06)',
     justifyContent: 'center', alignItems: 'center',
   },
-  profileBtn: {
+  avatarCircle: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center', alignItems: 'center',
   },
+  avatarText: { fontSize: 16, fontWeight: '800', color: '#FFF' },
   notifBadge: {
     position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, borderRadius: 9,
     backgroundColor: '#E53935', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4,
   },
   notifBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
 
-  /* Revenue Card */
-  revenueCard: {
-    flexDirection: 'row', backgroundColor: '#FFF',
-    borderRadius: RADIUS.lg, padding: SPACING.base, marginTop: SPACING.lg, ...SHADOW.sm,
+  /* ── Revenue Card ── */
+  revenueWrap: { paddingHorizontal: SPACING.base, marginTop: SPACING.sm },
+  revenueCard: { borderRadius: RADIUS.xl, overflow: 'hidden', ...SHADOW.md },
+  revenueGradient: { padding: SPACING.base },
+  revenueRow: { flexDirection: 'row', alignItems: 'center' },
+  revenueCol: { flex: 1 },
+  revenueLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  revenueLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.7)' },
+  revenueAmount: { fontSize: 22, fontWeight: '800', color: '#FFF', marginTop: 4 },
+  revenueDivider: { width: 1, height: 40, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: SPACING.md },
+  revenueFooter: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    marginTop: SPACING.sm, paddingTop: SPACING.sm,
+    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.15)',
   },
-  revenueMain: { flex: 1, alignItems: 'center' },
-  revenueLabel: { fontSize: 11, color: COLORS.text.secondary, fontWeight: '600' },
-  revenueAmount: { fontSize: 22, fontWeight: '800', color: COLORS.primary, marginTop: 4 },
-  revenueDivider: { width: 1, backgroundColor: COLORS.border, marginVertical: 4 },
+  revenueFooterText: { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: '600' },
 
-  /* Sections */
-  section: { paddingHorizontal: SPACING.base, marginTop: SPACING.lg },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.md },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text.primary },
-  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  seeAllText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+  /* ── Card Sections ── */
+  cardSection: { paddingHorizontal: SPACING.base, marginTop: SPACING.md },
+  card: {
+    borderRadius: RADIUS.xl,
+    padding: SPACING.base, ...SHADOW.sm,
+  },
+  cardHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  cardTitleDot: { width: 8, height: 8, borderRadius: 4 },
+  cardTitle: { fontSize: 16, fontWeight: '800' },
+  cardLink: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  cardLinkText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
 
-  /* Status Grid */
+  /* ── Status Grid ── */
   statusGrid: { flexDirection: 'row', gap: SPACING.sm },
   statusCard: {
-    flex: 1, borderRadius: RADIUS.lg, padding: SPACING.md,
-    alignItems: 'center', ...SHADOW.sm,
+    flex: 1, borderRadius: RADIUS.lg, paddingVertical: SPACING.md,
+    alignItems: 'center',
   },
   statusIconWrap: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 38, height: 38, borderRadius: 12,
     justifyContent: 'center', alignItems: 'center', marginBottom: 6,
   },
   statusCount: { fontSize: 20, fontWeight: '800' },
-  statusLabel: { fontSize: 10, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
+  statusLabel: { fontSize: 10, fontWeight: '700', marginTop: 2 },
 
-  /* Quick Actions */
-  actionsRow: { flexDirection: 'row', gap: SPACING.sm },
-  actionCard: {
-    flex: 1, backgroundColor: '#FFF', borderRadius: RADIUS.lg,
-    padding: SPACING.md, alignItems: 'center', ...SHADOW.sm,
+  /* ── Quick Actions ── */
+  actionsGrid: {
+    flexDirection: 'row', flexWrap: 'wrap',
+  },
+  actionItem: {
+    width: '33.33%', alignItems: 'center',
+    paddingVertical: SPACING.sm,
   },
   actionIconWrap: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 48, height: 48, borderRadius: 16,
     justifyContent: 'center', alignItems: 'center', marginBottom: 6,
   },
-  actionLabel: { fontSize: 11, fontWeight: '700', color: COLORS.text.primary, textAlign: 'center' },
+  actionLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
 
-  /* Overview Grid */
-  overviewGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
-  overviewCard: {
-    width: '48%', flexGrow: 1, backgroundColor: '#FFF', borderRadius: RADIUS.lg,
-    padding: SPACING.base, ...SHADOW.sm,
-  },
-  overviewValue: { fontSize: 24, fontWeight: '800', marginTop: 6 },
-  overviewLabel: { fontSize: 11, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
-  overviewAlert: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
-  overviewAlertText: { fontSize: 10, color: '#E53935', fontWeight: '600' },
-
-  /* Recent Orders */
-  recentOrderCard: {
+  /* ── Business Overview ── */
+  overviewGrid: { gap: 0 },
+  overviewItem: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md,
-    marginBottom: SPACING.sm, ...SHADOW.sm,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1, borderBottomColor: COLORS.divider,
   },
-  recentOrderIcon: {
-    width: 44, height: 44, borderRadius: 22,
+  overviewIconWrap: {
+    width: 40, height: 40, borderRadius: 12,
     justifyContent: 'center', alignItems: 'center',
   },
-  recentOrderInfo: { flex: 1 },
-  recentOrderTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  recentOrderId: { fontSize: 14, fontWeight: '800' },
-  recentStatusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full },
-  recentStatusText: { fontSize: 10, fontWeight: '700' },
-  recentOrderCustomer: { fontSize: 12, color: COLORS.text.secondary, marginTop: 2 },
-  recentOrderBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  recentOrderTime: { fontSize: 11, color: COLORS.text.muted },
-  recentOrderTotal: { fontSize: 14, fontWeight: '800', color: COLORS.primary },
+  overviewTextCol: { flex: 1 },
+  overviewValue: { fontSize: 18, fontWeight: '800' },
+  overviewLabel: { fontSize: 11, fontWeight: '600', color: COLORS.text.secondary, marginTop: 1 },
+  overviewAlert: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  alertDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E53935' },
+  overviewAlertText: { fontSize: 10, color: '#E53935', fontWeight: '600' },
 
-  /* Empty */
-  emptyCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.xl,
-    alignItems: 'center', ...SHADOW.sm,
+  /* ── Recent Orders ── */
+  orderRow: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
+    paddingVertical: SPACING.sm,
   },
+  orderRowBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.divider },
+  orderIcon: {
+    width: 40, height: 40, borderRadius: 12,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  orderInfo: { flex: 1 },
+  orderTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  orderId: { fontSize: 14, fontWeight: '800' },
+  orderBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full,
+  },
+  badgeDot: { width: 6, height: 6, borderRadius: 3 },
+  badgeText: { fontSize: 10, fontWeight: '700' },
+  orderCustomer: { fontSize: 12, color: COLORS.text.secondary, marginTop: 2 },
+  orderBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 },
+  orderTimePill: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  orderTime: { fontSize: 11, color: COLORS.text.muted },
+  orderTotal: { fontSize: 15, fontWeight: '800', color: COLORS.primary },
+
+  /* ── Empty ── */
+  emptyState: { alignItems: 'center', paddingVertical: SPACING.xl },
   emptyText: { fontSize: 13, color: COLORS.text.muted, marginTop: SPACING.sm },
 });

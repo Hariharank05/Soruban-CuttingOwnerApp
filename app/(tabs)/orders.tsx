@@ -22,13 +22,13 @@ const STATUS_FILTERS: { key: OwnerOrderStatus | 'all'; label: string }[] = [
   { key: 'delivered', label: 'Delivered' },
 ];
 
-const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  pending: { color: '#E65100', bg: '#FFF3E0', icon: 'clock-outline' },
-  preparing: { color: '#1565C0', bg: '#E3F2FD', icon: 'food-variant' },
-  ready: { color: '#388E3C', bg: '#E8F5E9', icon: 'check-circle-outline' },
-  out_for_delivery: { color: '#7B1FA2', bg: '#F3E5F5', icon: 'truck-delivery-outline' },
-  delivered: { color: '#616161', bg: '#F5F5F5', icon: 'package-variant-closed' },
-  cancelled: { color: '#C62828', bg: '#FFEBEE', icon: 'close-circle-outline' },
+const STATUS_CONFIG_COLORS: Record<string, { color: string; icon: string }> = {
+  pending: { color: '#E65100', icon: 'clock-outline' },
+  preparing: { color: '#1565C0', icon: 'food-variant' },
+  ready: { color: '#388E3C', icon: 'check-circle-outline' },
+  out_for_delivery: { color: '#7B1FA2', icon: 'truck-delivery-outline' },
+  delivered: { color: '#616161', icon: 'package-variant-closed' },
+  cancelled: { color: '#C62828', icon: 'close-circle-outline' },
 };
 
 function StatCard({ icon, count, label, color, bg }: { icon: string; count: number; label: string; color: string; bg: string }) {
@@ -44,6 +44,14 @@ function StatCard({ icon, count, label, color, bg }: { icon: string; count: numb
 export default function OrdersDashboard() {
   const router = useRouter();
   const themed = useThemedStyles();
+  const statusConfig: Record<string, { color: string; bg: string; icon: string }> = {
+    pending: { ...STATUS_CONFIG_COLORS.pending, bg: themed.colors.accentBg.orange },
+    preparing: { ...STATUS_CONFIG_COLORS.preparing, bg: themed.colors.accentBg.blue },
+    ready: { ...STATUS_CONFIG_COLORS.ready, bg: themed.colors.accentBg.green },
+    out_for_delivery: { ...STATUS_CONFIG_COLORS.out_for_delivery, bg: themed.colors.accentBg.purple },
+    delivered: { ...STATUS_CONFIG_COLORS.delivered, bg: themed.colors.accentBg.gray },
+    cancelled: { ...STATUS_CONFIG_COLORS.cancelled, bg: themed.colors.accentBg.red },
+  };
   const { orders, refreshOrders } = useOrders();
   const { handleScroll } = useTabBar();
   const [activeFilter, setActiveFilter] = useState<OwnerOrderStatus | 'all'>('all');
@@ -71,7 +79,7 @@ export default function OrdersDashboard() {
   }, [refreshOrders]);
 
   const renderOrder = useCallback(({ item }: { item: Order }) => {
-    const config = STATUS_CONFIG[item.status] || STATUS_CONFIG.pending;
+    const config = statusConfig[item.status] || statusConfig['pending'];
     const itemsSummary = item.items
       ?.slice(0, 3)
       .map(i => `${i.name}${i.cutType ? ` (${i.cutType})` : ''}`)
@@ -129,11 +137,11 @@ export default function OrdersDashboard() {
         </View>
       </TouchableOpacity>
     );
-  }, [themed, router]);
+  }, [themed, router, statusConfig]);
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -151,7 +159,7 @@ export default function OrdersDashboard() {
               <Text style={styles.createPackText}>Pack</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.bellBtn}
+              style={[styles.bellBtn, { backgroundColor: themed.colors.accentBg.gray }]}
               onPress={() => router.push('/notifications' as any)}
             >
               <Icon name="bell-outline" size={24} color={COLORS.text.primary} />
@@ -183,7 +191,7 @@ export default function OrdersDashboard() {
           contentContainerStyle={styles.filterList}
           renderItem={({ item: f }) => (
             <TouchableOpacity
-              style={[styles.filterChip, activeFilter === f.key && styles.filterChipActive]}
+              style={[styles.filterChip, { backgroundColor: themed.colors.card }, activeFilter === f.key && styles.filterChipActive]}
               onPress={() => setActiveFilter(f.key)}
             >
               <Text style={[styles.filterChipText, activeFilter === f.key && styles.filterChipTextActive]}>
@@ -233,7 +241,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8, ...SHADOW.sm,
   },
   createPackText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
-  bellBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
+  bellBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   bellBadge: { position: 'absolute', top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#E53935', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
   bellBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
 
@@ -251,7 +259,7 @@ const styles = StyleSheet.create({
   filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, alignItems: 'center' },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,
-    borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: COLORS.border,
   },
   filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundSoft },
   filterChipText: { fontSize: 13, fontWeight: '700', color: COLORS.text.secondary },
@@ -262,7 +270,7 @@ const styles = StyleSheet.create({
 
   /* Order Card */
   orderCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base,
+    borderRadius: RADIUS.lg, padding: SPACING.base,
     marginBottom: SPACING.md, ...SHADOW.sm,
   },
   orderTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm },

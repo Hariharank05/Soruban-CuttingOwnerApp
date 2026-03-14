@@ -93,7 +93,7 @@ export default function ProductsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -110,10 +110,10 @@ export default function ProductsScreen() {
 
       {/* Search Bar */}
       <View style={styles.searchWrap}>
-        <View style={[styles.searchBar, themed.card]}>
+        <View style={[styles.searchBar, { backgroundColor: themed.colors.card }]}>
           <Icon name="magnify" size={20} color={COLORS.text.muted} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: themed.colors.text.primary }]}
             placeholder="Search products..."
             placeholderTextColor={COLORS.text.muted}
             value={search}
@@ -138,7 +138,7 @@ export default function ProductsScreen() {
           contentContainerStyle={styles.categoryList}
           renderItem={({ item: c }) => (
             <TouchableOpacity
-              style={[styles.filterChip, activeCategory === c.key && styles.filterChipActive]}
+              style={[styles.filterChip, { backgroundColor: themed.colors.card }, activeCategory === c.key && styles.filterChipActive]}
               onPress={() => setActiveCategory(c.key)}
             >
               <Text style={[styles.filterChipText, activeCategory === c.key && styles.filterChipTextActive]}>
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   searchWrap: { paddingHorizontal: SPACING.base, marginTop: SPACING.sm },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.lg,
     paddingHorizontal: 14, paddingVertical: 10, ...SHADOW.sm,
   },
   searchInput: { flex: 1, fontSize: 14, color: COLORS.text.primary, paddingVertical: 0 },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   categoryList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, paddingVertical: SPACING.md, alignItems: 'center' },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,
-    borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: COLORS.border,
   },
   filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundSoft },
   filterChipText: { fontSize: 13, fontWeight: '700', color: COLORS.text.secondary },
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
 
   /* Product Card */
   productCard: {
-    backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.md,
+    borderRadius: RADIUS.lg, padding: SPACING.md,
     marginBottom: SPACING.sm, ...SHADOW.sm,
   },
   productRow: { flexDirection: 'row', gap: SPACING.md },

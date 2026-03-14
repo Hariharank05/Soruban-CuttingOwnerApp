@@ -18,25 +18,27 @@ const FILTER_TABS: { key: Payment['status'] | 'all'; label: string }[] = [
   { key: 'refunded', label: 'Refunded' },
 ];
 
-const METHOD_CONFIG: Record<PaymentMethod, { color: string; bg: string; icon: string; label: string }> = {
-  cod: { color: '#E65100', bg: '#FFF3E0', icon: 'cash', label: 'COD' },
-  upi: { color: '#1565C0', bg: '#E3F2FD', icon: 'cellphone', label: 'UPI' },
-  wallet: { color: '#7B1FA2', bg: '#F3E5F5', icon: 'wallet', label: 'Wallet' },
-  wallet_partial: { color: '#7B1FA2', bg: '#F3E5F5', icon: 'wallet-outline', label: 'Wallet+' },
-};
+const getMethodConfig = (themed: any): Record<PaymentMethod, { color: string; bg: string; icon: string; label: string }> => ({
+  cod: { color: '#E65100', bg: themed.colors.accentBg.orange, icon: 'cash', label: 'COD' },
+  upi: { color: '#1565C0', bg: themed.colors.accentBg.blue, icon: 'cellphone', label: 'UPI' },
+  wallet: { color: '#7B1FA2', bg: themed.colors.accentBg.purple, icon: 'wallet', label: 'Wallet' },
+  wallet_partial: { color: '#7B1FA2', bg: themed.colors.accentBg.purple, icon: 'wallet-outline', label: 'Wallet+' },
+});
 
-const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
-  completed: { color: '#388E3C', bg: '#E8F5E9' },
-  pending: { color: '#E65100', bg: '#FFF3E0' },
-  refunded: { color: '#1565C0', bg: '#E3F2FD' },
-  failed: { color: '#C62828', bg: '#FFEBEE' },
-};
+const getStatusConfig = (themed: any): Record<string, { color: string; bg: string }> => ({
+  completed: { color: '#388E3C', bg: themed.colors.accentBg.green },
+  pending: { color: '#E65100', bg: themed.colors.accentBg.orange },
+  refunded: { color: '#1565C0', bg: themed.colors.accentBg.blue },
+  failed: { color: '#C62828', bg: themed.colors.accentBg.red },
+});
 
 export default function PaymentsScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { orders } = useOrders();
   const [activeFilter, setActiveFilter] = useState<Payment['status'] | 'all'>('all');
+  const METHOD_CONFIG = useMemo(() => getMethodConfig(themed), [themed]);
+  const STATUS_CONFIG = useMemo(() => getStatusConfig(themed), [themed]);
 
   // Generate payment records from orders
   const payments: Payment[] = useMemo(() => {
@@ -109,7 +111,7 @@ export default function PaymentsScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, [themed, router]);
+  }, [themed, router, METHOD_CONFIG, STATUS_CONFIG]);
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
@@ -134,22 +136,22 @@ export default function PaymentsScreen() {
           <>
             {/* Summary Cards */}
             <View style={styles.summaryGrid}>
-              <View style={[styles.summaryCard, { backgroundColor: '#E8F5E9' }]}>
+              <View style={[styles.summaryCard, { backgroundColor: themed.colors.accentBg.green }]}>
                 <Icon name="cash-check" size={24} color="#388E3C" />
                 <Text style={[styles.summaryValue, { color: '#388E3C' }]}>{'\u20B9'}{summary.totalRevenue.toLocaleString('en-IN')}</Text>
                 <Text style={styles.summaryLabel}>Total Revenue</Text>
               </View>
-              <View style={[styles.summaryCard, { backgroundColor: '#FFF3E0' }]}>
+              <View style={[styles.summaryCard, { backgroundColor: themed.colors.accentBg.orange }]}>
                 <Icon name="cash-clock" size={24} color="#E65100" />
                 <Text style={[styles.summaryValue, { color: '#E65100' }]}>{'\u20B9'}{summary.pendingCod.toLocaleString('en-IN')}</Text>
                 <Text style={styles.summaryLabel}>Pending COD</Text>
               </View>
-              <View style={[styles.summaryCard, { backgroundColor: '#E3F2FD' }]}>
+              <View style={[styles.summaryCard, { backgroundColor: themed.colors.accentBg.blue }]}>
                 <Icon name="cash-refund" size={24} color="#1565C0" />
                 <Text style={[styles.summaryValue, { color: '#1565C0' }]}>{'\u20B9'}{summary.walletRefunds.toLocaleString('en-IN')}</Text>
                 <Text style={styles.summaryLabel}>Refunds</Text>
               </View>
-              <View style={[styles.summaryCard, { backgroundColor: '#F3E5F5' }]}>
+              <View style={[styles.summaryCard, { backgroundColor: themed.colors.accentBg.purple }]}>
                 <Icon name="credit-card-check" size={24} color="#7B1FA2" />
                 <Text style={[styles.summaryValue, { color: '#7B1FA2' }]}>{'\u20B9'}{summary.onlinePayments.toLocaleString('en-IN')}</Text>
                 <Text style={styles.summaryLabel}>Online</Text>
@@ -210,7 +212,7 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
   filterChip: {
     flex: 1, paddingVertical: 10, borderRadius: RADIUS.full, alignItems: 'center',
-    borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: COLORS.border,
   },
   filterChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundSoft },
   filterChipText: { fontSize: 13, fontWeight: '700', color: COLORS.text.secondary },
@@ -218,7 +220,7 @@ const styles = StyleSheet.create({
 
   resultCount: { fontSize: 13, fontWeight: '600', marginBottom: SPACING.sm },
 
-  paymentCard: { backgroundColor: '#FFF', borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
+  paymentCard: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
   payCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING.sm },
   payIdRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   payOrderId: { fontSize: 14, fontWeight: '800' },
