@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView,
-  StatusBar, Alert, RefreshControl,
+  StatusBar, Alert, RefreshControl, Modal,
 } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,10 +17,13 @@ import { useTabBar } from '@/context/TabBarContext';
 export default function DeliveriesScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
-  const { orders, updateOrderStatus } = useOrders();
-  const { deliveryPersons, assignDelivery, markDelivered } = useDeliveries();
+  const { orders, updateOrderStatus, assignDriver } = useOrders();
+  const { deliveryPersons, assignDelivery, reassignDelivery, markDelivered } = useDeliveries();
   const { handleScroll } = useTabBar();
   const [refreshing, setRefreshing] = useState(false);
+  const [assignModalVisible, setAssignModalVisible] = useState(false);
+  const [assignOrderId, setAssignOrderId] = useState<string | null>(null);
+  const [isReassign, setIsReassign] = useState(false);
 
   const activeDeliveries = useMemo(() => {
     return orders.filter(o => o.status === 'out_for_delivery' || o.status === 'ready');
@@ -34,23 +37,15 @@ export default function DeliveriesScreen() {
     setTimeout(() => setRefreshing(false), 800);
   }, []);
 
-  const handleAssignDriver = (orderId: string) => {
+  const handleAssignDriver = (orderId: string, reassign = false) => {
     const available = deliveryPersons?.filter(d => d.isAvailable) || [];
     if (available.length === 0) {
       Alert.alert('No Drivers Available', 'All delivery persons are currently busy.');
       return;
     }
-    Alert.alert(
-      'Assign Driver',
-      'Select a delivery person',
-      [
-        ...available.map(d => ({
-          text: d.name,
-          onPress: () => assignDelivery?.(orderId, d.id),
-        })),
-        { text: 'Cancel', style: 'cancel' as const },
-      ]
-    );
+    setAssignOrderId(orderId);
+    setIsReassign(reassign);
+    setAssignModalVisible(true);
   };
 
   const handleMarkDelivered = (orderId: string) => {
@@ -114,6 +109,15 @@ export default function DeliveriesScreen() {
             >
               <Icon name="account-plus-outline" size={16} color="#FFF" />
               <Text style={styles.assignBtnText}>Assign Driver</Text>
+            </TouchableOpacity>
+          )}
+          {isOut && order.assignedDriver && (
+            <TouchableOpacity
+              style={styles.changeDriverBtn}
+              onPress={() => handleAssignDriver(order.id, true)}
+            >
+              <Icon name="account-switch-outline" size={16} color="#FFF" />
+              <Text style={styles.changeDriverBtnText}>Change Driver</Text>
             </TouchableOpacity>
           )}
           {isOut && (
@@ -253,6 +257,61 @@ export default function DeliveriesScreen() {
 
         <View style={{ height: SPACING.xxxl }} />
       </ScrollView>
+
+      {/* Assign Driver Modal */}
+      <Modal
+        visible={assignModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAssignModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => { setAssignModalVisible(false); setIsReassign(false); }}
+        >
+          <View style={[styles.assignModalSheet, themed.card]} onStartShouldSetResponder={() => true}>
+            <View style={styles.assignModalHandle} />
+            <Text style={[styles.assignModalTitle, themed.textPrimary]}>{isReassign ? 'Change Driver' : 'Assign Driver'}</Text>
+            <Text style={[styles.assignModalSub, themed.textSecondary]}>Select a delivery person</Text>
+            <View style={styles.assignDriverList}>
+              {(deliveryPersons?.filter(d => d.isAvailable) || []).map(d => (
+                <TouchableOpacity
+                  key={d.id}
+                  style={styles.assignDriverBtn}
+                  onPress={async () => {
+                    if (assignOrderId) {
+                      if (isReassign) {
+                        await reassignDelivery?.(assignOrderId, d.id);
+                      } else {
+                        await assignDelivery?.(assignOrderId, d.id);
+                      }
+                      await assignDriver?.(assignOrderId, d.name, d.phone);
+                    }
+                    setAssignModalVisible(false);
+                    setAssignOrderId(null);
+                    setIsReassign(false);
+                  }}
+                  activeOpacity={0.75}
+                >
+                  <View style={[styles.assignDriverAvatar, { backgroundColor: themed.colors.accentBg.green }]}>
+                    <Icon name="account" size={20} color="#388E3C" />
+                  </View>
+                  <Text style={[styles.assignDriverName, themed.textPrimary]}>{d.name}</Text>
+                  <Icon name="chevron-right" size={18} color={COLORS.text.secondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={styles.assignCancelBtn}
+              onPress={() => { setAssignModalVisible(false); setAssignOrderId(null); setIsReassign(false); }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.assignCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -319,6 +378,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8,
   },
   assignBtnText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
+  changeDriverBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#E65100', borderRadius: RADIUS.full,
+    paddingHorizontal: 14, paddingVertical: 8,
+  },
+  changeDriverBtnText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
   deliveredBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
@@ -349,4 +414,37 @@ const styles = StyleSheet.create({
   driverMeta: { flexDirection: 'row', gap: SPACING.md, marginTop: 6 },
   driverMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   driverMetaText: { fontSize: 11, color: COLORS.text.muted },
+
+  /* Assign Driver Modal */
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  assignModalSheet: {
+    borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl,
+    paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.xl,
+    ...SHADOW.floating,
+  },
+  assignModalHandle: {
+    width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.border,
+    alignSelf: 'center', marginBottom: SPACING.md,
+  },
+  assignModalTitle: { fontSize: 18, fontWeight: '800', textAlign: 'center' },
+  assignModalSub: { fontSize: 13, textAlign: 'center', marginTop: 4, marginBottom: SPACING.md },
+  assignDriverList: { gap: SPACING.sm },
+  assignDriverBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    paddingVertical: SPACING.md, paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border,
+  },
+  assignDriverAvatar: {
+    width: 40, height: 40, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  assignDriverName: { flex: 1, fontSize: 15, fontWeight: '700' },
+  assignCancelBtn: {
+    marginTop: SPACING.md, paddingVertical: 14, borderRadius: RADIUS.lg,
+    alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border,
+  },
+  assignCancelText: { fontSize: 15, fontWeight: '700', color: COLORS.text.secondary },
 });

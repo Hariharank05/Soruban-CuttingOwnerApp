@@ -24,6 +24,7 @@ interface DeliveryContextType {
   getDeliveryPersons: () => DeliveryPerson[];
   getAvailableDrivers: () => DeliveryPerson[];
   assignDelivery: (orderId: string, driverId: string) => Promise<{ success: boolean; message: string }>;
+  reassignDelivery: (orderId: string, newDriverId: string) => Promise<{ success: boolean; message: string }>;
   markDelivered: (orderId: string) => Promise<{ success: boolean; message: string }>;
   getActiveDeliveries: () => DeliveryAssignment[];
   getAssignmentByOrderId: (orderId: string) => DeliveryAssignment | undefined;
@@ -39,6 +40,7 @@ const DeliveryContext = createContext<DeliveryContextType>({
   getDeliveryPersons: () => [],
   getAvailableDrivers: () => [],
   assignDelivery: async () => ({ success: false, message: '' }),
+  reassignDelivery: async () => ({ success: false, message: '' }),
   markDelivered: async () => ({ success: false, message: '' }),
   getActiveDeliveries: () => [],
   getAssignmentByOrderId: () => undefined,
@@ -298,6 +300,43 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: `Order assigned to ${driver.name}` };
   }, [deliveryPersons, assignments, persistPersons, persistAssignments]);
 
+  const reassignDelivery = useCallback(async (orderId: string, newDriverId: string): Promise<{ success: boolean; message: string }> => {
+    const newDriver = deliveryPersons.find(d => d.id === newDriverId);
+    if (!newDriver) return { success: false, message: 'Driver not found' };
+    if (!newDriver.isAvailable) return { success: false, message: 'Driver is not available' };
+
+    const existing = assignments.find(a => a.orderId === orderId && a.status !== 'delivered');
+    const withoutOld = existing
+      ? assignments.filter(a => !(a.orderId === orderId && a.status !== 'delivered'))
+      : assignments;
+
+    const newAssignment: DeliveryAssignment = {
+      orderId,
+      driverId: newDriverId,
+      driverName: newDriver.name,
+      driverPhone: newDriver.phone,
+      assignedAt: new Date().toISOString(),
+      status: 'assigned',
+    };
+
+    const updatedPersons = deliveryPersons.map(d => {
+      if (existing && d.id === existing.driverId && d.id !== newDriverId) {
+        return { ...d, activeDeliveries: Math.max(0, d.activeDeliveries - 1) };
+      }
+      if (d.id === newDriverId && (!existing || existing.driverId !== newDriverId)) {
+        return { ...d, activeDeliveries: d.activeDeliveries + 1 };
+      }
+      return d;
+    });
+
+    await Promise.all([
+      persistPersons(updatedPersons),
+      persistAssignments([...withoutOld, newAssignment]),
+    ]);
+
+    return { success: true, message: `Order reassigned to ${newDriver.name}` };
+  }, [deliveryPersons, assignments, persistPersons, persistAssignments]);
+
   const markDelivered = useCallback(async (orderId: string): Promise<{ success: boolean; message: string }> => {
     const assignment = assignments.find((a) => a.orderId === orderId && a.status !== 'delivered');
     if (!assignment) return { success: false, message: 'No active delivery assignment found for this order' };
@@ -357,6 +396,7 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
       getDeliveryPersons,
       getAvailableDrivers,
       assignDelivery,
+      reassignDelivery,
       markDelivered,
       getActiveDeliveries,
       getAssignmentByOrderId,
@@ -364,7 +404,7 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
       toggleAvailability,
       refreshDeliveries: loadData,
     }),
-    [deliveryPersons, assignments, isLoading, getDeliveryPersons, getAvailableDrivers, assignDelivery, markDelivered, getActiveDeliveries, getAssignmentByOrderId, addDeliveryPerson, toggleAvailability, loadData],
+    [deliveryPersons, assignments, isLoading, getDeliveryPersons, getAvailableDrivers, assignDelivery, reassignDelivery, markDelivered, getActiveDeliveries, getAssignmentByOrderId, addDeliveryPerson, toggleAvailability, loadData],
   );
 
   return <DeliveryContext.Provider value={value}>{children}</DeliveryContext.Provider>;

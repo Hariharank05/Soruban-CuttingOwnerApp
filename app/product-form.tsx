@@ -39,6 +39,7 @@ export default function ProductFormScreen() {
   const [tags, setTags] = useState('');
   const [inStock, setInStock] = useState(true);
   const [stockQuantity, setStockQuantity] = useState('');
+  const [cuttingVideoUrl, setCuttingVideoUrl] = useState('');
   const [showUnitPicker, setShowUnitPicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
@@ -53,6 +54,7 @@ export default function ProductFormScreen() {
       setTags(existingProduct.tags?.join(', ') || '');
       setInStock(existingProduct.inStock);
       setStockQuantity(String(existingProduct.stockQuantity || ''));
+      setCuttingVideoUrl(existingProduct.cuttingVideoUrl || '');
     }
   }, [existingProduct]);
 
@@ -71,6 +73,7 @@ export default function ProductFormScreen() {
       inStock,
       stockQuantity: stockQuantity ? Number(stockQuantity) : 0,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      cuttingVideoUrl: cuttingVideoUrl.trim() || undefined,
       createdAt: existingProduct?.createdAt || new Date().toISOString(),
     };
 
@@ -85,7 +88,7 @@ export default function ProductFormScreen() {
     } catch {
       Alert.alert('Error', 'Failed to save product');
     }
-  }, [name, description, price, unit, category, imageUrl, tags, inStock, stockQuantity, isEditing, id, existingProduct, addProduct, updateProduct, router]);
+  }, [name, description, price, unit, category, imageUrl, cuttingVideoUrl, tags, inStock, stockQuantity, isEditing, id, existingProduct, addProduct, updateProduct, router]);
 
   const handleDelete = useCallback(() => {
     Alert.alert('Delete Product', `Are you sure you want to delete "${name}"?`, [
@@ -223,6 +226,20 @@ export default function ProductFormScreen() {
               value={imageUrl}
               onChangeText={setImageUrl}
               placeholder="https://..."
+              placeholderTextColor={COLORS.text.muted}
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+          </View>
+
+          {/* Cutting Video URL */}
+          <View style={styles.field}>
+            <Text style={[styles.label, themed.textPrimary]}>Cutting Video URL</Text>
+            <TextInput
+              style={[styles.input, themed.inputBg]}
+              value={cuttingVideoUrl}
+              onChangeText={setCuttingVideoUrl}
+              placeholder="https://youtube.com/... or video link"
               placeholderTextColor={COLORS.text.muted}
               autoCapitalize="none"
               keyboardType="url"

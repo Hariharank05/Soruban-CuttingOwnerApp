@@ -101,6 +101,13 @@ function RootLayoutNav() {
           <Stack.Screen name="notifications" />
           <Stack.Screen name="subscription-detail" />
           <Stack.Screen name="offers" />
+          <Stack.Screen name="sales-report" />
+          <Stack.Screen name="shop-profile" />
+          <Stack.Screen name="loyalty" />
+          <Stack.Screen name="promotions" />
+          <Stack.Screen name="settlements" />
+          <Stack.Screen name="staff-manage" />
+          <Stack.Screen name="price-update" />
         </Stack>
       </View>
     </NavThemeProvider>

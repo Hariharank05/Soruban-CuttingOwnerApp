@@ -99,12 +99,21 @@ export default function ProductsScreen() {
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
         <View style={styles.headerRow}>
           <Text style={[styles.headerTitle, themed.textPrimary]}>Products</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => router.push('/product-form' as any)}
-          >
-            <Icon name="plus" size={20} color="#FFF" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.createPackBtn}
+              onPress={() => router.push('/pack-form' as any)}
+            >
+              <Icon name="package-variant" size={18} color="#FFF" />
+              <Text style={styles.createPackText}>Pack</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => router.push('/product-form' as any)}
+            >
+              <Icon name="plus" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
 
@@ -190,6 +199,13 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text.primary },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  createPackBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
+    paddingHorizontal: 14, paddingVertical: 8, ...SHADOW.sm,
+  },
+  createPackText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
   addButton: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary,
     justifyContent: 'center', alignItems: 'center', ...SHADOW.sm,

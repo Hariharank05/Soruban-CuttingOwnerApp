@@ -5,7 +5,7 @@ import SAMPLE_PACKS from '@/data/packs';
 
 const PACKS_KEY = '@owner_packs';
 const DEMO_PACK_VERSION_KEY = '@demo_pack_version';
-const DEMO_PACK_VERSION = 2;
+const DEMO_PACK_VERSION = 5;
 
 interface PackContextType {
   packs: Pack[];

@@ -40,6 +40,7 @@ export interface Product {
   reviewCount?: number;
   tags?: string[];
   healthBenefits?: string[];
+  cuttingVideoUrl?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -260,4 +261,66 @@ export interface CutTypePricing {
   fee: number;
   description: string;
   image?: string;
+}
+
+// ─── Loyalty Program ───
+export type LoyaltyType = 'order_count' | 'spend_value';
+export type RewardType = 'discount_percent' | 'flat_discount' | 'free_delivery';
+
+export interface LoyaltyConfig {
+  id: string;
+  isEnabled: boolean;
+  loyaltyType: LoyaltyType;
+  threshold: number;
+  rewardType: RewardType;
+  rewardValue: number;
+  updatedAt: string;
+}
+
+// ─── Promotions ───
+export type PromotionType = 'discount' | 'min_order' | 'new_arrival' | 'seasonal_banner';
+
+export interface Promotion {
+  id: string;
+  type: PromotionType;
+  title: string;
+  description: string;
+  discountValue?: number;
+  discountType?: 'flat' | 'percent';
+  minOrder?: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
+// ─── Settlements ───
+export interface Settlement {
+  id: string;
+  date: string;
+  status: 'pending' | 'processed' | 'paid';
+  totalSales: number;
+  totalDeductions: number;
+  commissionRate?: number;
+  commissionAmount?: number;
+  netAmount: number;
+  orders: string[];
+  transactionId?: string;
+}
+
+// ─── Staff ───
+export type StaffRole = 'order_manager' | 'delivery_person' | 'billing_staff' | 'viewer';
+export type StaffPermission =
+  | 'view_orders' | 'manage_orders'
+  | 'fill_prices' | 'manage_catalog'
+  | 'view_billing' | 'manage_billing'
+  | 'delivery_updates' | 'view_reports';
+
+export interface Staff {
+  id: string;
+  name: string;
+  phone: string;
+  role: StaffRole;
+  permissions: StaffPermission[];
+  isActive: boolean;
+  joinedAt: string;
 }

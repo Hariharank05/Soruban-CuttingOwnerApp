@@ -32,6 +32,13 @@ const MENU_ITEMS: MenuItem[] = [
   { icon: 'calendar-sync', label: 'Subscriptions', route: '/(tabs)/subscriptions', color: '#E65100', bgKey: 'orange', subtitle: 'Weekly & monthly plans' },
   { icon: 'account-group', label: 'Customers', route: '/customers', color: '#1565C0', bgKey: 'blue', subtitle: 'View all customers' },
   { icon: 'wallet', label: 'Payments', route: '/payments', color: '#388E3C', bgKey: 'green', subtitle: 'Payment history & invoices' },
+  { icon: 'chart-bar', label: 'Sales Report', route: '/sales-report', color: '#1565C0', bgKey: 'blue', subtitle: 'Revenue & order analytics' },
+  { icon: 'store', label: 'Shop Profile', route: '/shop-profile', color: '#388E3C', bgKey: 'green', subtitle: 'Shop details & hours' },
+  { icon: 'gift-outline', label: 'Loyalty Program', route: '/loyalty', color: '#7B1FA2', bgKey: 'purple', subtitle: 'Customer rewards setup' },
+  { icon: 'tag-multiple', label: 'Promotions', route: '/promotions', color: '#E65100', bgKey: 'orange', subtitle: 'Manage active promotions' },
+  { icon: 'bank-transfer', label: 'Settlements', route: '/settlements', color: '#00796B', bgKey: 'cyan', subtitle: 'Payment settlement history' },
+  { icon: 'badge-account', label: 'Staff', route: '/staff-manage', color: '#1565C0', bgKey: 'blue', subtitle: 'Manage staff & permissions' },
+  { icon: 'tag-edit', label: 'Quick Price Update', route: '/price-update', color: '#C62828', bgKey: 'red', subtitle: 'Bulk update product prices' },
   { icon: 'cog', label: 'Settings', route: '/settings', color: '#616161', bgKey: 'gray', subtitle: 'App preferences & config' },
   { icon: 'information', label: 'About', route: null, color: '#0277BD', bgKey: 'cyan', subtitle: `Version ${APP_VERSION}` },
 ];

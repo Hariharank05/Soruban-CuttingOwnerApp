@@ -152,13 +152,6 @@ export default function OrdersDashboard() {
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity
-              style={styles.createPackBtn}
-              onPress={() => router.push('/pack-form' as any)}
-            >
-              <Icon name="package-variant" size={18} color="#FFF" />
-              <Text style={styles.createPackText}>Pack</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[styles.bellBtn, { backgroundColor: themed.colors.accentBg.gray }]}
               onPress={() => router.push('/notifications' as any)}
             >
@@ -235,12 +228,6 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: '800' },
   headerSub: { fontSize: 12, marginTop: 2 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  createPackBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
-    paddingHorizontal: 14, paddingVertical: 8, ...SHADOW.sm,
-  },
-  createPackText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
   bellBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   bellBadge: { position: 'absolute', top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#E53935', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
   bellBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
