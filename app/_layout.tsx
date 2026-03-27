@@ -15,6 +15,13 @@ import { DeliveryProvider } from '@/context/DeliveryContext';
 import { PackProvider } from '@/context/PackContext';
 import { CouponProvider } from '@/context/CouponContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { WalletProvider } from '@/context/WalletContext';
+import { ReviewProvider } from '@/context/ReviewContext';
+import { IssueProvider } from '@/context/IssueContext';
+import { ReferralProvider } from '@/context/ReferralContext';
+import { RecipeProvider } from '@/context/RecipeContext';
+import { SupportProvider } from '@/context/SupportContext';
+import { NotificationConfigProvider } from '@/context/NotificationContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
 
@@ -108,6 +115,27 @@ function RootLayoutNav() {
           <Stack.Screen name="settlements" />
           <Stack.Screen name="staff-manage" />
           <Stack.Screen name="price-update" />
+          <Stack.Screen name="nutritionist-manage" />
+          <Stack.Screen name="group-subscriptions" />
+          <Stack.Screen name="corporate-plans" />
+          <Stack.Screen name="freshness-tracker" />
+          <Stack.Screen name="wallet-manage" />
+          <Stack.Screen name="reviews-manage" />
+          <Stack.Screen name="issues-manage" />
+          <Stack.Screen name="order-invoice" />
+          <Stack.Screen name="delivery-tracking" />
+          <Stack.Screen name="subscription-calendar" />
+          <Stack.Screen name="vacation-manage" />
+          <Stack.Screen name="referral-manage" />
+          <Stack.Screen name="loyalty-tiers" />
+          <Stack.Screen name="customer-analytics" />
+          <Stack.Screen name="order-calendar" />
+          <Stack.Screen name="recipes-manage" />
+          <Stack.Screen name="notification-config" />
+          <Stack.Screen name="support-tickets" />
+          <Stack.Screen name="custom-packs-monitor" />
+          <Stack.Screen name="b2b-manage" />
+          <Stack.Screen name="kitchen-summary" />
         </Stack>
       </View>
     </NavThemeProvider>
@@ -124,9 +152,23 @@ export default function RootLayout() {
               <DeliveryProvider>
                 <PackProvider>
                   <CouponProvider>
-                    <ErrorBoundary>
-                      <RootLayoutNav />
-                    </ErrorBoundary>
+                    <WalletProvider>
+                      <ReviewProvider>
+                        <IssueProvider>
+                          <ReferralProvider>
+                            <RecipeProvider>
+                              <SupportProvider>
+                                <NotificationConfigProvider>
+                                  <ErrorBoundary>
+                                    <RootLayoutNav />
+                                  </ErrorBoundary>
+                                </NotificationConfigProvider>
+                              </SupportProvider>
+                            </RecipeProvider>
+                          </ReferralProvider>
+                        </IssueProvider>
+                      </ReviewProvider>
+                    </WalletProvider>
                   </CouponProvider>
                 </PackProvider>
               </DeliveryProvider>

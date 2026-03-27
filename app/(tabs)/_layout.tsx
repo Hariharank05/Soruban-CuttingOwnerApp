@@ -151,7 +151,7 @@ export default function TabsLayout() {
           <Tabs.Screen
             name="more"
             options={{
-              title: 'More',
+              title: 'Profile',
               tabBarIcon: ({ color, size }) => (
                 <Icon name="account-circle-outline" size={size} color={color} />
               ),

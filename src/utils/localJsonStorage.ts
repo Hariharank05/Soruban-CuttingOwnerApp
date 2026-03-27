@@ -61,3 +61,94 @@ export async function loadStaff(): Promise<Staff[]> {
 export async function saveStaff(data: Staff[]): Promise<void> {
   return setStoredData(STAFF_KEY, data);
 }
+
+// ─── Wallet ───
+import type { WalletTransaction, CustomerWallet } from '@/types';
+const WALLET_TX_KEY = '@owner_wallet_transactions';
+const WALLET_CUSTOMERS_KEY = '@owner_customer_wallets';
+export async function loadWalletTransactions(): Promise<WalletTransaction[]> {
+  return getStoredData<WalletTransaction[]>(WALLET_TX_KEY, []);
+}
+export async function saveWalletTransactions(data: WalletTransaction[]): Promise<void> {
+  return setStoredData(WALLET_TX_KEY, data);
+}
+export async function loadCustomerWallets(): Promise<CustomerWallet[]> {
+  return getStoredData<CustomerWallet[]>(WALLET_CUSTOMERS_KEY, []);
+}
+export async function saveCustomerWallets(data: CustomerWallet[]): Promise<void> {
+  return setStoredData(WALLET_CUSTOMERS_KEY, data);
+}
+
+// ─── Reviews ───
+import type { ProductReview } from '@/types';
+const REVIEWS_KEY = '@owner_reviews';
+export async function loadReviews(): Promise<ProductReview[]> {
+  return getStoredData<ProductReview[]>(REVIEWS_KEY, []);
+}
+export async function saveReviews(data: ProductReview[]): Promise<void> {
+  return setStoredData(REVIEWS_KEY, data);
+}
+
+// ─── Issues ───
+import type { OrderIssue } from '@/types';
+const ISSUES_KEY = '@owner_issues';
+export async function loadIssues(): Promise<OrderIssue[]> {
+  return getStoredData<OrderIssue[]>(ISSUES_KEY, []);
+}
+export async function saveIssues(data: OrderIssue[]): Promise<void> {
+  return setStoredData(ISSUES_KEY, data);
+}
+
+// ─── Referrals ───
+import type { Referral, ReferralConfig } from '@/types';
+const REFERRALS_KEY = '@owner_referrals';
+const REFERRAL_CONFIG_KEY = '@owner_referral_config';
+export async function loadReferrals(): Promise<Referral[]> {
+  return getStoredData<Referral[]>(REFERRALS_KEY, []);
+}
+export async function saveReferrals(data: Referral[]): Promise<void> {
+  return setStoredData(REFERRALS_KEY, data);
+}
+export async function loadReferralConfig(): Promise<ReferralConfig | null> {
+  return getStoredData<ReferralConfig | null>(REFERRAL_CONFIG_KEY, null);
+}
+export async function saveReferralConfig(data: ReferralConfig): Promise<void> {
+  return setStoredData(REFERRAL_CONFIG_KEY, data);
+}
+
+// ─── Recipes ───
+import type { CommunityRecipe } from '@/types';
+const RECIPES_KEY = '@owner_recipes';
+export async function loadRecipes(): Promise<CommunityRecipe[]> {
+  return getStoredData<CommunityRecipe[]>(RECIPES_KEY, []);
+}
+export async function saveRecipes(data: CommunityRecipe[]): Promise<void> {
+  return setStoredData(RECIPES_KEY, data);
+}
+
+// ─── Support Tickets ───
+import type { SupportTicket } from '@/types';
+const TICKETS_KEY = '@owner_support_tickets';
+export async function loadTickets(): Promise<SupportTicket[]> {
+  return getStoredData<SupportTicket[]>(TICKETS_KEY, []);
+}
+export async function saveTickets(data: SupportTicket[]): Promise<void> {
+  return setStoredData(TICKETS_KEY, data);
+}
+
+// ─── Notification Config ───
+import type { NotificationTemplate, NotificationCampaign } from '@/types';
+const NOTIF_TEMPLATES_KEY = '@owner_notif_templates';
+const NOTIF_CAMPAIGNS_KEY = '@owner_notif_campaigns';
+export async function loadNotifTemplates(): Promise<NotificationTemplate[]> {
+  return getStoredData<NotificationTemplate[]>(NOTIF_TEMPLATES_KEY, []);
+}
+export async function saveNotifTemplates(data: NotificationTemplate[]): Promise<void> {
+  return setStoredData(NOTIF_TEMPLATES_KEY, data);
+}
+export async function loadNotifCampaigns(): Promise<NotificationCampaign[]> {
+  return getStoredData<NotificationCampaign[]>(NOTIF_CAMPAIGNS_KEY, []);
+}
+export async function saveNotifCampaigns(data: NotificationCampaign[]): Promise<void> {
+  return setStoredData(NOTIF_CAMPAIGNS_KEY, data);
+}

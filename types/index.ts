@@ -324,3 +324,275 @@ export interface Staff {
   isActive: boolean;
   joinedAt: string;
 }
+
+// ─── Wallet Transaction (owner view of customer wallets) ───
+export type WalletTransactionType = 'credit' | 'debit' | 'refund' | 'cashback' | 'topup';
+
+export interface WalletTransaction {
+  id: string;
+  customerId: string;
+  customerName: string;
+  type: WalletTransactionType;
+  amount: number;
+  title: string;
+  description?: string;
+  orderId?: string;
+  date: string;
+  balanceAfter: number;
+}
+
+export interface CustomerWallet {
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  balance: number;
+  totalCredited: number;
+  totalDebited: number;
+  lastTransaction?: string;
+}
+
+// ─── Reviews & Ratings ───
+export type ReviewStatus = 'published' | 'flagged' | 'hidden';
+
+export interface ProductReview {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerAvatar?: string;
+  productId: string;
+  productName: string;
+  orderId: string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  status: ReviewStatus;
+  ownerReply?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// ─── Order Ratings (feedback from customers) ───
+export interface OrderRating {
+  id: string;
+  orderId: string;
+  customerId: string;
+  customerName: string;
+  customerPhone?: string;
+  overallRating: number;
+  freshnessRating: number;
+  cuttingRating: number;
+  deliveryRating: number;
+  comment?: string;
+  photos?: string[];
+  createdAt: string;
+}
+
+// ─── Order Issues ───
+export type IssueType = 'wrong_item' | 'quality' | 'missing_item' | 'damaged' | 'late_delivery' | 'wrong_cut' | 'other';
+export type IssueStatus = 'open' | 'investigating' | 'resolved' | 'closed';
+export type IssuePriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface OrderIssue {
+  id: string;
+  orderId: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  type: IssueType;
+  priority: IssuePriority;
+  title: string;
+  description: string;
+  images?: string[];
+  status: IssueStatus;
+  resolution?: string;
+  refundAmount?: number;
+  assignedTo?: string;
+  createdAt: string;
+  updatedAt?: string;
+  resolvedAt?: string;
+}
+
+// ─── Delivery Tracking (owner real-time view) ───
+export type DeliveryTrackingStatus = 'assigned' | 'picked_up' | 'in_transit' | 'nearby' | 'delivered';
+
+export interface DeliveryTracking {
+  id: string;
+  orderId: string;
+  driverId: string;
+  driverName: string;
+  driverPhone: string;
+  customerName: string;
+  customerAddress: string;
+  status: DeliveryTrackingStatus;
+  estimatedTime: string;
+  assignedAt: string;
+  pickedUpAt?: string;
+  deliveredAt?: string;
+  distanceKm?: number;
+  notes?: string;
+}
+
+// ─── Vacation Requests (subscription pauses) ───
+export interface VacationRequest {
+  id: string;
+  customerId: string;
+  customerName: string;
+  subscriptionId: string;
+  startDate: string;
+  endDate: string;
+  reason?: string;
+  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  affectedDeliveries: number;
+  createdAt: string;
+}
+
+// ─── Referral Program ───
+export interface ReferralConfig {
+  id: string;
+  isEnabled: boolean;
+  referrerReward: number;
+  refereeReward: number;
+  rewardType: 'wallet_credit' | 'discount_percent' | 'flat_discount';
+  minOrderForReward: number;
+  maxReferrals: number;
+  updatedAt: string;
+}
+
+export type ReferralStatus = 'pending' | 'completed' | 'expired';
+
+export interface Referral {
+  id: string;
+  referrerId: string;
+  referrerName: string;
+  referrerPhone: string;
+  refereeName: string;
+  refereePhone: string;
+  status: ReferralStatus;
+  rewardAmount: number;
+  orderId?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+// ─── Loyalty Tiers ───
+export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum';
+
+export interface LoyaltyTierConfig {
+  tier: LoyaltyTier;
+  name: string;
+  minPoints: number;
+  discountPercent: number;
+  freeDelivery: boolean;
+  prioritySupport: boolean;
+  exclusiveOffers: boolean;
+  color: string;
+  icon: string;
+}
+
+export interface CheckInConfig {
+  isEnabled: boolean;
+  dailyPoints: number;
+  streakBonus: number;
+  streakDays: number;
+  maxStreak: number;
+  updatedAt: string;
+}
+
+export interface CustomerLoyalty {
+  customerId: string;
+  customerName: string;
+  tier: LoyaltyTier;
+  totalPoints: number;
+  currentPoints: number;
+  currentStreak: number;
+  longestStreak: number;
+  lastCheckIn?: string;
+}
+
+// ─── Community Recipes ───
+export type RecipeStatus = 'pending' | 'approved' | 'rejected' | 'featured';
+
+export interface CommunityRecipe {
+  id: string;
+  title: string;
+  image: string;
+  authorId: string;
+  authorName: string;
+  description: string;
+  ingredients: string[];
+  steps: string[];
+  cookTime: string;
+  servings: number;
+  likes: number;
+  status: RecipeStatus;
+  linkedPackId?: string;
+  linkedPackName?: string;
+  createdAt: string;
+  reviewedAt?: string;
+}
+
+// ─── Notification Config ───
+export type NotificationType = 'promotional' | 'order_update' | 'subscription_reminder' | 'loyalty' | 'offer';
+
+export interface NotificationTemplate {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface NotificationCampaign {
+  id: string;
+  templateId?: string;
+  title: string;
+  body: string;
+  type: NotificationType;
+  targetAudience: 'all' | 'subscribers' | 'inactive' | 'loyal' | 'new';
+  scheduledAt: string;
+  status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
+  sentCount?: number;
+  openCount?: number;
+  createdAt: string;
+}
+
+// ─── Support Tickets ───
+export type TicketStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
+export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type TicketCategory = 'order' | 'delivery' | 'payment' | 'subscription' | 'product' | 'app' | 'other';
+
+export interface TicketMessage {
+  id: string;
+  sender: 'customer' | 'owner' | 'system';
+  message: string;
+  timestamp: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  category: TicketCategory;
+  priority: TicketPriority;
+  status: TicketStatus;
+  subject: string;
+  messages: TicketMessage[];
+  orderId?: string;
+  assignedTo?: string;
+  createdAt: string;
+  updatedAt?: string;
+  resolvedAt?: string;
+}
+
+// ─── Custom Pack Analytics ───
+export interface CustomPackTrend {
+  id: string;
+  name: string;
+  items: string[];
+  usageCount: number;
+  lastUsed: string;
+  avgOrderValue: number;
+  customerCount: number;
+}

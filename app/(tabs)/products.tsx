@@ -188,6 +188,7 @@ export default function ProductsScreen() {
           </View>
         }
       />
+
     </SafeAreaView>
   );
 }
@@ -274,4 +275,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 12, marginTop: SPACING.lg,
   },
   emptyBtnText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
+
 });

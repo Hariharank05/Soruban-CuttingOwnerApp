@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, FlatList,
-  StatusBar, RefreshControl,
+  View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView,
+  StatusBar, RefreshControl, Alert, Vibration,
 } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
 import { useThemedStyles } from '@/src/utils/useThemedStyles';
@@ -43,6 +43,7 @@ function StatCard({ icon, count, label, color, bg }: { icon: string; count: numb
 
 export default function OrdersDashboard() {
   const router = useRouter();
+  const { filter: filterParam } = useLocalSearchParams<{ filter?: string }>();
   const themed = useThemedStyles();
   const statusConfig: Record<string, { color: string; bg: string; icon: string }> = {
     pending: { ...STATUS_CONFIG_COLORS.pending, bg: themed.colors.accentBg.orange },
@@ -52,10 +53,16 @@ export default function OrdersDashboard() {
     delivered: { ...STATUS_CONFIG_COLORS.delivered, bg: themed.colors.accentBg.gray },
     cancelled: { ...STATUS_CONFIG_COLORS.cancelled, bg: themed.colors.accentBg.red },
   };
-  const { orders, refreshOrders } = useOrders();
+  const { orders, refreshOrders, updateOrderStatus } = useOrders();
   const { handleScroll } = useTabBar();
   const [activeFilter, setActiveFilter] = useState<OwnerOrderStatus | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (filterParam && STATUS_FILTERS.some(f => f.key === filterParam)) {
+      setActiveFilter(filterParam as OwnerOrderStatus | 'all');
+    }
+  }, [filterParam]);
 
   const stats = useMemo(() => {
     const today = new Date().toDateString();
@@ -71,6 +78,33 @@ export default function OrdersDashboard() {
     if (activeFilter === 'all') return orders;
     return orders.filter(o => o.status === activeFilter);
   }, [orders, activeFilter]);
+
+  const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
+
+  const handleAcceptAllPending = () => {
+    if (pendingOrders.length === 0) return;
+    Alert.alert(
+      'Accept All Pending Orders?',
+      `This will move ${pendingOrders.length} order${pendingOrders.length !== 1 ? 's' : ''} to Preparing status.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Accept All',
+          onPress: async () => {
+            try {
+              await Promise.all(
+                pendingOrders.map(o => updateOrderStatus(o.id, 'preparing'))
+              );
+              Vibration.vibrate(100);
+              Alert.alert('Success', `${pendingOrders.length} order${pendingOrders.length !== 1 ? 's' : ''} moved to Preparing.`);
+            } catch {
+              Alert.alert('Error', 'Failed to update some orders. Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -166,34 +200,20 @@ export default function OrdersDashboard() {
         </View>
       </LinearGradient>
 
-      {/* Stats Cards */}
-      {/* <View style={styles.statsGrid}>
-        <StatCard icon="clock-outline" count={stats.pending} label="Pending" color="#E65100" bg="#FFF3E0" />
-        <StatCard icon="food-variant" count={stats.preparing} label="Preparing" color="#1565C0" bg="#E3F2FD" />
-        <StatCard icon="check-circle-outline" count={stats.ready} label="Ready" color="#388E3C" bg="#E8F5E9" />
-        <StatCard icon="truck-check-outline" count={stats.deliveredToday} label="Delivered" color="#4CAF50" bg="#E8F5E9" />
-      </View> */}
-
       {/* Filter Tabs */}
-      <View style={styles.filterScroll}>
-        <FlatList
-          horizontal
-          data={STATUS_FILTERS}
-          keyExtractor={f => f.key}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterList}
-          renderItem={({ item: f }) => (
-            <TouchableOpacity
-              style={[styles.filterChip, { backgroundColor: themed.colors.card }, activeFilter === f.key && styles.filterChipActive]}
-              onPress={() => setActiveFilter(f.key)}
-            >
-              <Text style={[styles.filterChipText, activeFilter === f.key && styles.filterChipTextActive]}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList} style={styles.filterScroll}>
+        {STATUS_FILTERS.map((f) => (
+          <TouchableOpacity
+            key={f.key}
+            style={[styles.filterChip, { backgroundColor: themed.colors.card }, activeFilter === f.key && styles.filterChipActive]}
+            onPress={() => setActiveFilter(f.key)}
+          >
+            <Text style={[styles.filterChipText, activeFilter === f.key && styles.filterChipTextActive]}>
+              {f.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       {/* Order List */}
       <FlatList
@@ -213,6 +233,14 @@ export default function OrdersDashboard() {
               {activeFilter === 'all' ? 'Orders will appear here when customers place them' : `No ${activeFilter.replace(/_/g, ' ')} orders right now`}
             </Text>
           </View>
+        }
+        ListFooterComponent={
+          activeFilter === 'pending' && pendingOrders.length > 0 ? (
+            <TouchableOpacity style={styles.acceptAllBtn} onPress={handleAcceptAllPending}>
+              <Icon name="check-all" size={20} color="#FFF" />
+              <Text style={styles.acceptAllText}>Accept All Pending ({pendingOrders.length})</Text>
+            </TouchableOpacity>
+          ) : null
         }
       />
     </SafeAreaView>
@@ -292,4 +320,12 @@ const styles = StyleSheet.create({
   emptyContainer: { alignItems: 'center', paddingTop: SPACING.xxxl * 2 },
   emptyTitle: { fontSize: 17, fontWeight: '800', color: COLORS.text.primary, marginTop: SPACING.md },
   emptyDesc: { fontSize: 13, color: COLORS.text.muted, textAlign: 'center', marginTop: 4, paddingHorizontal: SPACING.xxl },
+
+  /* Accept All Pending */
+  acceptAllBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#388E3C', borderRadius: RADIUS.lg, padding: 14,
+    marginHorizontal: SPACING.base, marginTop: SPACING.md, marginBottom: SPACING.lg, ...SHADOW.sm,
+  },
+  acceptAllText: { fontSize: 15, fontWeight: '700', color: '#FFF' },
 });

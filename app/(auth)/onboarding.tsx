@@ -1,145 +1,206 @@
 import React, { useState, useRef } from 'react';
-import {
-  View, Text, StyleSheet, FlatList,
-  TouchableOpacity, Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView, StatusBar } from 'react-native';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import Icon from '@expo/vector-icons/MaterialCommunityIcons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, RADIUS } from '@/src/utils/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useThemedStyles } from '@/src/utils/useThemedStyles';
 
 const { width } = Dimensions.get('window');
 
 const slides = [
   {
-    id: '1',
-    icon: 'clipboard-list-outline' as const,
+    icon: 'store' as const,
+    title: 'Welcome to Soruban Owner',
+    description: 'Manage your cutting business with ease. Track orders, products, and deliveries in one place.',
+  },
+  {
+    icon: 'clipboard-list' as const,
     title: 'Manage Orders',
-    subtitle: 'Track and fulfill customer orders in real-time. View order details, cutting instructions, and delivery status all in one place.',
-    bg: ['#388E3C', '#4CAF50'] as const,
-    dark: false,
+    description: 'Accept orders, assign drivers, and track deliveries in real-time. Never miss an order.',
   },
   {
-    id: '2',
     icon: 'package-variant' as const,
-    title: 'Product & Pack Catalog',
-    subtitle: 'Add products, create dish packs, manage pricing and stock levels. Keep your catalog fresh and up-to-date.',
-    bg: ['#E8F5E9', '#F1F8F2'] as const,
-    dark: true,
+    title: 'Products & Packs',
+    description: 'Add products, create dish packs, set prices, and manage your inventory effortlessly.',
   },
   {
-    id: '3',
-    icon: 'truck-delivery-outline' as const,
-    title: 'Delivery Tracking',
-    subtitle: 'Assign drivers, monitor live deliveries, and ensure every order reaches the customer on time.',
-    bg: ['#FFA726', '#FFB74D'] as const,
-    dark: true,
-  },
-  {
-    id: '4',
     icon: 'chart-line' as const,
-    title: 'Business Insights',
-    subtitle: 'View revenue, order trends, customer analytics, and subscription metrics to grow your business smarter.',
-    bg: ['#4CAF50', '#66BB6A'] as const,
-    dark: false,
+    title: 'Grow Your Business',
+    description: 'Track sales, manage subscriptions, engage customers with loyalty programs and promotions.',
   },
 ];
 
 export default function OnboardingScreen() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const themed = useThemedStyles();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatRef = useRef<FlatList>(null);
 
-  const next = () => {
-    if (currentIndex < slides.length - 1) {
-      flatRef.current?.scrollToIndex({ index: currentIndex + 1 });
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      router.replace('/(auth)/login');
+  const handleNext = () => {
+    if (activeIndex < slides.length - 1) {
+      scrollRef.current?.scrollTo({ x: width * (activeIndex + 1), animated: true });
+      setActiveIndex(activeIndex + 1);
     }
   };
 
-  const skip = () => router.replace('/(auth)/login');
+  const handleSkip = () => {
+    router.replace('/(auth)/login');
+  };
+
+  const handleGetStarted = () => {
+    router.replace('/(auth)/login');
+  };
+
+  const handleScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / width);
+    if (index !== activeIndex) {
+      setActiveIndex(index);
+    }
+  };
+
+  const isLastSlide = activeIndex === slides.length - 1;
 
   return (
-    <View style={[styles.container, themed.safeArea]}>
-      <FlatList
-        ref={flatRef}
-        data={slides}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={e => {
-          const idx = Math.round(e.nativeEvent.contentOffset.x / width);
-          setCurrentIndex(idx);
-        }}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <LinearGradient colors={item.bg} style={styles.slide}>
-            <Icon name={item.icon} size={80} color={item.dark ? COLORS.primary : '#FFF'} style={{ marginBottom: 32 }} />
-            <Text style={[styles.title, item.dark && styles.titleDark]}>{item.title}</Text>
-            <Text style={[styles.subtitle, item.dark && styles.subtitleDark]}>{item.subtitle}</Text>
-          </LinearGradient>
-        )}
-      />
-      <View style={[styles.footer, themed.card, { paddingBottom: 24 + insets.bottom }]}>
-        <View style={styles.dots}>
-          {slides.map((_, i) => (
-            <View key={i} style={[styles.dot, i === currentIndex && styles.dotActive]} />
-          ))}
-        </View>
-        <View style={styles.buttons}>
-          <TouchableOpacity onPress={skip} style={styles.skipBtn}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#388E3C" />
+      <LinearGradient colors={['#388E3C', '#4CAF50']} style={styles.gradient}>
+        <SafeAreaView style={styles.safeArea}>
+          {/* Skip button */}
+          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={next} style={styles.nextBtn}>
-            <Text style={styles.nextText}>
-              {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+
+          {/* Slides */}
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {slides.map((slide, index) => (
+              <View key={index} style={styles.slide}>
+                <View style={styles.iconCircle}>
+                  <Icon name={slide.icon} size={60} color="#388E3C" />
+                </View>
+                <Text style={styles.title}>{slide.title}</Text>
+                <Text style={styles.description}>{slide.description}</Text>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Dot indicators */}
+          <View style={styles.dotsContainer}>
+            {slides.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  index === activeIndex ? styles.dotActive : styles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+
+          {/* Bottom button */}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={isLastSlide ? handleGetStarted : handleNext}
+          >
+            <Text style={styles.buttonText}>
+              {isLastSlide ? 'Get Started' : 'Next'}
             </Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        </SafeAreaView>
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  slide: {
-    width,
+  container: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  gradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  skipButton: {
+    alignSelf: 'flex-end',
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.sm,
+  },
+  skipText: {
+    color: COLORS.text.white,
+    fontSize: 15,
+    fontWeight: '500',
+    opacity: 0.9,
+  },
+  slide: {
+    width: width,
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 60,
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.xxl,
+    flex: 1,
+  },
+  iconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.text.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.xxl,
   },
   title: {
-    fontSize: 28, fontWeight: '800', color: '#FFF',
-    textAlign: 'center', lineHeight: 36, marginBottom: 16,
+    fontSize: 26,
+    fontWeight: '700',
+    color: COLORS.text.white,
+    textAlign: 'center',
+    marginBottom: SPACING.base,
   },
-  titleDark: { color: COLORS.text.primary },
-  subtitle: {
-    fontSize: 16, color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center', lineHeight: 24,
+  description: {
+    fontSize: 15,
+    color: COLORS.text.white,
+    opacity: 0.8,
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: SPACING.base,
   },
-  subtitleDark: { color: 'rgba(31,31,31,0.7)' },
-  footer: {
-    paddingVertical: 24,
-    paddingHorizontal: 24,
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
   },
-  dots: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#DDD', marginHorizontal: 4 },
-  dotActive: { width: 24, backgroundColor: COLORS.primary },
-  buttons: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  skipBtn: { padding: 12 },
-  skipText: { color: COLORS.text.muted, fontSize: 15, fontWeight: '600' },
-  nextBtn: {
-    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
-    paddingVertical: 14, paddingHorizontal: 32,
+  dot: {
+    height: 8,
+    borderRadius: RADIUS.full,
+    marginHorizontal: SPACING.xs,
   },
-  nextText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
+  dotActive: {
+    width: 24,
+    backgroundColor: COLORS.text.white,
+  },
+  dotInactive: {
+    width: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  button: {
+    backgroundColor: COLORS.text.white,
+    marginHorizontal: SPACING.xl,
+    marginBottom: SPACING.xl,
+    paddingVertical: SPACING.base,
+    borderRadius: RADIUS.lg,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#388E3C',
+    fontSize: 17,
+    fontWeight: '700',
+  },
 });

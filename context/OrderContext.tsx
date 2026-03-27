@@ -4,7 +4,7 @@ import type { Order, OwnerOrderStatus } from '@/types';
 
 const ORDERS_KEY = '@owner_orders';
 const DEMO_DATA_VERSION_KEY = '@demo_data_version';
-const DEMO_DATA_VERSION = 2; // Bump this to force-reseed demo data
+const DEMO_DATA_VERSION = 3; // Bump this to force-reseed demo data with fresh dates
 
 interface OrderContextType {
   orders: Order[];

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, Switch, KeyboardAvoidingView, Platform, Image,
+  Pressable, TouchableWithoutFeedback, Keyboard,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -228,6 +229,14 @@ export default function PackFormScreen() {
 
   const selectedCategoryLabel = PACK_CATEGORIES.find(c => c.key === category)?.label || 'Select';
 
+  const isAnyPickerOpen = showCategoryPicker || showColorPicker || showUnitPicker;
+
+  const dismissAllPickers = useCallback(() => {
+    setShowCategoryPicker(false);
+    setShowColorPicker(false);
+    setShowUnitPicker(false);
+  }, []);
+
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
       {/* Header */}
@@ -243,8 +252,9 @@ export default function PackFormScreen() {
         </View>
       </LinearGradient>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} onScrollBeginDrag={dismissAllPickers} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+          <Pressable onPress={() => { if (isAnyPickerOpen) { dismissAllPickers(); } Keyboard.dismiss(); }}>
 
           {/* Preview Card */}
           {imageUrl.trim() ? (
@@ -443,7 +453,12 @@ export default function PackFormScreen() {
           {/* Product picker */}
           {showProductPicker && (
             <View style={[styles.productPickerWrap, themed.card]}>
-              <Text style={styles.pickerLabel}>Select a product to add:</Text>
+              <View style={styles.inlineFormHeader}>
+                <Text style={styles.pickerLabel}>Select a product to add:</Text>
+                <TouchableOpacity onPress={() => setShowProductPicker(false)} style={styles.inlineFormClose}>
+                  <Icon name="close" size={18} color={COLORS.text.muted} />
+                </TouchableOpacity>
+              </View>
               <ScrollView style={styles.productPickerScroll} nestedScrollEnabled>
                 {products
                   .filter(p => !items.some(i => i.productId === p.id))
@@ -468,6 +483,12 @@ export default function PackFormScreen() {
           {/* Custom item form */}
           {showAddItem && (
             <View style={[styles.customItemForm, themed.card]}>
+              <View style={styles.inlineFormHeader}>
+                <Text style={styles.inlineFormTitle}>Custom Item</Text>
+                <TouchableOpacity onPress={() => setShowAddItem(false)} style={styles.inlineFormClose}>
+                  <Icon name="close" size={18} color={COLORS.text.muted} />
+                </TouchableOpacity>
+              </View>
               <TextInput
                 style={[styles.input, themed.inputBg, { marginBottom: SPACING.sm }]}
                 value={newItemName}
@@ -589,6 +610,12 @@ export default function PackFormScreen() {
 
           {showAddVariant && (
             <View style={[styles.variantForm, themed.card]}>
+              <View style={styles.inlineFormHeader}>
+                <Text style={styles.inlineFormTitle}>New Variant</Text>
+                <TouchableOpacity onPress={() => setShowAddVariant(false)} style={styles.inlineFormClose}>
+                  <Icon name="close" size={18} color={COLORS.text.muted} />
+                </TouchableOpacity>
+              </View>
               <TextInput
                 style={[styles.input, themed.inputBg, { marginBottom: SPACING.sm }]}
                 value={variantName}
@@ -680,6 +707,7 @@ export default function PackFormScreen() {
           )}
 
           <View style={{ height: 40 }} />
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -843,6 +871,15 @@ const styles = StyleSheet.create({
   variantForm: {
     borderRadius: RADIUS.lg, padding: SPACING.md,
     marginBottom: SPACING.base, ...SHADOW.md,
+  },
+  inlineFormHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  inlineFormTitle: { fontSize: 13, fontWeight: '700', color: COLORS.text.primary },
+  inlineFormClose: {
+    width: 28, height: 28, borderRadius: 14, backgroundColor: '#F5F5F5',
+    alignItems: 'center', justifyContent: 'center',
   },
   spiceRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
   spiceOption: {

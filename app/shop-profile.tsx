@@ -60,7 +60,7 @@ export default function ShopProfileScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
 
         <LinearGradient colors={['#B8E0CF', '#D6EFE3']} style={styles.header}>
           <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent' }}>

@@ -42,9 +42,10 @@ export default function OrderDetailScreen() {
   const themed = useThemedStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getOrderById, updateOrderStatus, assignDriver } = useOrders();
-  const { getAvailableDrivers, assignDelivery } = useDeliveries();
+  const { getAvailableDrivers, assignDelivery, reassignDelivery } = useDeliveries();
 
   const [driverModalVisible, setDriverModalVisible] = useState(false);
+  const [isReassigning, setIsReassigning] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [videoModal, setVideoModal] = useState<{ visible: boolean; url: string; label: string }>({ visible: false, url: '', label: '' });
 
@@ -93,18 +94,31 @@ export default function OrderDetailScreen() {
 
   const handleAssignDriver = useCallback(async (driverId: string) => {
     if (!order) return;
-    const result = await assignDelivery(order.id, driverId);
+    const hasExistingDriver = !!order.assignedDriver;
+    const result = hasExistingDriver
+      ? await reassignDelivery(order.id, driverId)
+      : await assignDelivery(order.id, driverId);
     if (result.success) {
       const driver = availableDrivers.find(d => d.id === driverId);
       if (driver) {
         await assignDriver(order.id, driver.name, driver.phone);
       }
-      await handleStatusUpdate('out_for_delivery');
+      if (!isReassigning) {
+        await handleStatusUpdate('out_for_delivery');
+      } else {
+        Alert.alert('Success', `Driver reassigned to ${driver?.name || 'new driver'}`);
+      }
       setDriverModalVisible(false);
+      setIsReassigning(false);
     } else {
       Alert.alert('Error', result.message);
     }
-  }, [order, assignDelivery, assignDriver, availableDrivers, handleStatusUpdate]);
+  }, [order, assignDelivery, reassignDelivery, assignDriver, availableDrivers, handleStatusUpdate, isReassigning]);
+
+  const handleReassignDriver = useCallback(() => {
+    setIsReassigning(true);
+    setDriverModalVisible(true);
+  }, []);
 
   const handleCallCustomer = useCallback(() => {
     if (order?.customerPhone) {
@@ -210,10 +224,18 @@ export default function OrderDetailScreen() {
             <Icon name="truck-delivery" size={18} color={COLORS.accent} />
             <Text style={[styles.infoLabel, themed.textSecondary]}>Driver:</Text>
             {order.assignedDriver ? (
-              <TouchableOpacity style={styles.driverChip} onPress={handleCallDriver}>
-                <Text style={styles.driverName}>{order.assignedDriver}</Text>
-                <Icon name="phone-outline" size={14} color={COLORS.primary} />
-              </TouchableOpacity>
+              <View style={styles.driverChipRow}>
+                <TouchableOpacity style={styles.driverChip} onPress={handleCallDriver}>
+                  <Text style={styles.driverName}>{order.assignedDriver}</Text>
+                  <Icon name="phone-outline" size={14} color={COLORS.primary} />
+                </TouchableOpacity>
+                {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                  <TouchableOpacity style={styles.reassignChip} onPress={handleReassignDriver}>
+                    <Icon name="account-switch" size={16} color="#E65100" />
+                    <Text style={styles.reassignText}>Change</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             ) : (
               <Text style={[styles.infoValue, { color: COLORS.text.muted }]}>Not assigned</Text>
             )}
@@ -423,6 +445,26 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
+        {/* Quick Actions: Invoice & Track */}
+        <View style={[styles.card, themed.card, { flexDirection: 'row', gap: SPACING.sm }]}>
+          <TouchableOpacity
+            style={[styles.actionBtn, { flex: 1, backgroundColor: themed.colors.accentBg.blue, borderWidth: 0 }]}
+            onPress={() => router.push({ pathname: '/order-invoice', params: { id: order.id } } as any)}
+          >
+            <Icon name="file-document-outline" size={20} color="#1565C0" />
+            <Text style={[styles.actionBtnDangerText, { color: '#1565C0' }]}>View Invoice</Text>
+          </TouchableOpacity>
+          {order.status === 'out_for_delivery' && (
+            <TouchableOpacity
+              style={[styles.actionBtn, { flex: 1, backgroundColor: themed.colors.accentBg.purple, borderWidth: 0 }]}
+              onPress={() => router.push({ pathname: '/delivery-tracking', params: { id: order.id } } as any)}
+            >
+              <Icon name="map-marker-path" size={20} color="#7B1FA2" />
+              <Text style={[styles.actionBtnDangerText, { color: '#7B1FA2' }]}>Track Delivery</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         <View style={{ height: 40 }} />
       </ScrollView>
 
@@ -450,8 +492,8 @@ export default function OrderDetailScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, themed.card]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, themed.textPrimary]}>Assign Driver</Text>
-              <TouchableOpacity onPress={() => setDriverModalVisible(false)}>
+              <Text style={[styles.modalTitle, themed.textPrimary]}>{isReassigning ? 'Reassign Driver' : 'Assign Driver'}</Text>
+              <TouchableOpacity onPress={() => { setDriverModalVisible(false); setIsReassigning(false); }}>
                 <Icon name="close" size={24} color={COLORS.text.secondary} />
               </TouchableOpacity>
             </View>
@@ -516,8 +558,11 @@ const styles = StyleSheet.create({
   infoValue: { fontSize: 14, fontWeight: '600' },
   callBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginLeft: 'auto' },
 
+  driverChipRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
   driverChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.backgroundSoft, paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full },
   driverName: { fontSize: 13, fontWeight: '600', color: COLORS.primary },
+  reassignChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFF3E0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full },
+  reassignText: { fontSize: 11, fontWeight: '700', color: '#E65100' },
 
   // Cutting Instructions
   cuttingItem: { paddingVertical: SPACING.md },
@@ -565,7 +610,7 @@ const styles = StyleSheet.create({
   timelineDesc: { fontSize: 12, marginTop: 2 },
 
   // Actions
-  actionsContainer: { gap: SPACING.sm },
+  actionsContainer: { gap: SPACING.sm, marginBottom: SPACING.md },
   actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: RADIUS.lg },
   actionBtnPrimary: { backgroundColor: COLORS.primary },
   actionBtnPrimaryText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
