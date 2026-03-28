@@ -136,6 +136,7 @@ function RootLayoutNav() {
           <Stack.Screen name="custom-packs-monitor" />
           <Stack.Screen name="b2b-manage" />
           <Stack.Screen name="kitchen-summary" />
+          <Stack.Screen name="popular-products" />
         </Stack>
       </View>
     </NavThemeProvider>

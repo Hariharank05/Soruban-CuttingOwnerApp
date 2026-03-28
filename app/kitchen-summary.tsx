@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Share } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Share, Image } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -7,13 +7,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
 import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { useOrders } from '@/context/OrderContext';
+import { useProducts } from '@/context/ProductContext';
 
-const CUT_TYPE_CONFIG: Record<string, { icon: string; label: string; color: string; bg: string }> = {
-  small_pieces: { icon: 'cube-outline', label: 'Small Pieces', color: '#E65100', bg: '#FFF3E0' },
-  slices: { icon: 'circle-slice-4', label: 'Slices', color: '#1565C0', bg: '#E3F2FD' },
-  cubes: { icon: 'cube', label: 'Cubes', color: '#388E3C', bg: '#E8F5E9' },
-  long_cuts: { icon: 'resize', label: 'Long Cuts', color: '#7B1FA2', bg: '#F3E5F5' },
-  grated: { icon: 'grain', label: 'Grated', color: '#C62828', bg: '#FFEBEE' },
+const CUT_TYPE_CONFIG: Record<string, { icon: string; label: string; color: string; bg: string; image?: string }> = {
+  small_pieces: { icon: 'cube-outline', label: 'Small Pieces', color: '#E65100', bg: '#FFF3E0', image: 'https://media.istockphoto.com/id/2249938416/photo/diced-bell-peppers-in-three-colors-pizza-toppings-hd-stock-photo.webp?a=1&b=1&s=612x612&w=0&k=20&c=JPOMHkiFknVzVR1wH1Byglt-owU6KrwDti0rWT50giE=' },
+  slices: { icon: 'circle-slice-4', label: 'Slices', color: '#1565C0', bg: '#E3F2FD', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp1lhK5cvi8am617xdzRjbYlPlYhcc1bVSQg&s' },
+  cubes: { icon: 'cube', label: 'Cubes', color: '#388E3C', bg: '#E8F5E9', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ezD-KS6iwuiBmghKqB8W4rvTlp1JOB6KL4TSS2YXKQ&s' },
+  long_cuts: { icon: 'resize', label: 'Long Cuts', color: '#7B1FA2', bg: '#F3E5F5', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzjZO-U546wb1z9xNy9UauhZef5_PalkHyBCtpgEZ0ag&s' },
+  grated: { icon: 'grain', label: 'Grated', color: '#C62828', bg: '#FFEBEE', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiCjNUcnt_Ld-3fDMGTtN1kjCSsBRSOFOCKA&s' },
 };
 
 const DEFAULT_CUT = { icon: 'knife', label: 'Unspecified', color: '#616161', bg: '#F5F5F5' };
@@ -24,11 +25,13 @@ interface CutBreakdown {
   icon: string;
   color: string;
   bg: string;
+  image?: string;
   quantity: number;
 }
 
 interface ProductInSlot {
   productName: string;
+  image?: string;
   totalQuantity: number;
   unit: string;
   cuts: CutBreakdown[];
@@ -52,6 +55,7 @@ export default function KitchenSummaryScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
   const { orders } = useOrders();
+  const { products } = useProducts();
   const [activeDay, setActiveDay] = useState<DayTab>('today');
 
   const today = useMemo(() => new Date(), []);
@@ -60,6 +64,15 @@ export default function KitchenSummaryScreen() {
     d.setDate(d.getDate() + 1);
     return d;
   }, []);
+
+  // Build a lookup map: product name -> image from products catalog
+  const productImageMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const p of products) {
+      if (p.image) map[p.name.toLowerCase()] = p.image;
+    }
+    return map;
+  }, [products]);
 
   const targetDate = activeDay === 'today' ? today : tomorrow;
   const targetDateStr = targetDate.toDateString();
@@ -76,7 +89,7 @@ export default function KitchenSummaryScreen() {
 
   // Group by delivery time slot, then by product within each slot
   const timeSlotGroups = useMemo(() => {
-    const slotMap: Record<string, { orderIds: Set<string>; products: Record<string, { totalQty: number; unit: string; cuts: Record<string, number> }> }> = {};
+    const slotMap: Record<string, { orderIds: Set<string>; products: Record<string, { totalQty: number; unit: string; image?: string; cuts: Record<string, number> }> }> = {};
 
     for (const order of filteredOrders) {
       const slot = order.deliverySlot || 'Unscheduled';
@@ -88,7 +101,15 @@ export default function KitchenSummaryScreen() {
       for (const item of order.items) {
         const name = item.name;
         if (!slotMap[slot].products[name]) {
-          slotMap[slot].products[name] = { totalQty: 0, unit: item.unit || 'kg', cuts: {} };
+          slotMap[slot].products[name] = {
+            totalQty: 0,
+            unit: item.unit || 'kg',
+            image: item.image || productImageMap[name.toLowerCase()],
+            cuts: {},
+          };
+        }
+        if (!slotMap[slot].products[name].image) {
+          slotMap[slot].products[name].image = item.image || productImageMap[name.toLowerCase()];
         }
         slotMap[slot].products[name].totalQty += item.quantity;
         const cut = item.cutType || 'unspecified';
@@ -102,12 +123,13 @@ export default function KitchenSummaryScreen() {
       products: Object.entries(data.products)
         .map(([productName, pData]) => ({
           productName,
+          image: pData.image,
           totalQuantity: pData.totalQty,
           unit: pData.unit,
           cuts: Object.entries(pData.cuts)
             .map(([cutType, quantity]) => {
               const cfg = CUT_TYPE_CONFIG[cutType] || DEFAULT_CUT;
-              return { cutType, label: cfg.label, icon: cfg.icon, color: cfg.color, bg: cfg.bg, quantity };
+              return { cutType, label: cfg.label, icon: cfg.icon, color: cfg.color, bg: cfg.bg, image: cfg.image, quantity };
             })
             .sort((a, b) => b.quantity - a.quantity),
         }))
@@ -173,6 +195,17 @@ export default function KitchenSummaryScreen() {
       {item.products.map((product) => (
         <View key={product.productName} style={[styles.productCard, themed.card]}>
           <View style={styles.productHeader}>
+            {product.image ? (
+              <Image
+                source={{ uri: product.image }}
+                style={styles.productImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.productImagePlaceholder}>
+                <Icon name="food-apple-outline" size={20} color={COLORS.text.muted} />
+              </View>
+            )}
             <View style={{ flex: 1 }}>
               <Text style={[styles.productName, themed.textPrimary]}>{product.productName}</Text>
               <Text style={[styles.productTotal, { color: COLORS.primary }]}>
@@ -184,9 +217,17 @@ export default function KitchenSummaryScreen() {
           <View style={styles.cutsContainer}>
             {product.cuts.map((cut) => (
               <View key={cut.cutType} style={[styles.cutRow, { borderLeftColor: cut.color }]}>
-                <View style={[styles.cutIconWrap, { backgroundColor: cut.bg }]}>
-                  <Icon name={cut.icon as any} size={16} color={cut.color} />
-                </View>
+                {cut.image ? (
+                  <Image
+                    source={{ uri: cut.image }}
+                    style={[styles.cutImage, { borderColor: cut.bg }]}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[styles.cutIconWrap, { backgroundColor: cut.bg }]}>
+                    <Icon name={cut.icon as any} size={16} color={cut.color} />
+                  </View>
+                )}
                 <Text style={[styles.cutLabel, themed.textPrimary]}>{cut.label}</Text>
                 <Text style={[styles.cutQty, { color: cut.color }]}>
                   {cut.quantity} {product.unit}
@@ -344,13 +385,19 @@ const styles = StyleSheet.create({
 
   /* Product Card */
   productCard: { borderRadius: RADIUS.lg, padding: SPACING.base, marginBottom: SPACING.sm, ...SHADOW.sm },
-  productHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: SPACING.sm },
+  productHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: SPACING.sm, gap: SPACING.sm },
+  productImage: { width: 44, height: 44, borderRadius: RADIUS.md },
+  productImagePlaceholder: {
+    width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: '#F5F5F5',
+    alignItems: 'center', justifyContent: 'center',
+  },
   productName: { fontSize: 15, fontWeight: '700' },
   productTotal: { fontSize: 13, fontWeight: '600', marginTop: 2 },
 
   /* Cut Rows */
   cutsContainer: { gap: SPACING.xs + 2 },
   cutRow: { flexDirection: 'row', alignItems: 'center', borderLeftWidth: 3, paddingLeft: SPACING.md, paddingVertical: SPACING.xs },
+  cutImage: { width: 28, height: 28, borderRadius: RADIUS.sm, borderWidth: 1.5, marginRight: SPACING.sm },
   cutIconWrap: { width: 28, height: 28, borderRadius: RADIUS.sm, alignItems: 'center', justifyContent: 'center', marginRight: SPACING.sm },
   cutLabel: { flex: 1, fontSize: 13, fontWeight: '500' },
   cutQty: { fontSize: 13, fontWeight: '700' },

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView,
-  StatusBar, RefreshControl, Alert, Vibration,
+  StatusBar, RefreshControl, Alert, Vibration, TextInput,
 } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -57,6 +57,7 @@ export default function OrdersDashboard() {
   const { handleScroll } = useTabBar();
   const [activeFilter, setActiveFilter] = useState<OwnerOrderStatus | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (filterParam && STATUS_FILTERS.some(f => f.key === filterParam)) {
@@ -75,9 +76,20 @@ export default function OrdersDashboard() {
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
-    if (activeFilter === 'all') return orders;
-    return orders.filter(o => o.status === activeFilter);
-  }, [orders, activeFilter]);
+    let result = orders;
+    if (activeFilter !== 'all') {
+      result = result.filter(o => o.status === activeFilter);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      result = result.filter(o =>
+        o.id.toLowerCase().includes(q) ||
+        (o.customerName || '').toLowerCase().includes(q) ||
+        (o.customerPhone || '').includes(q)
+      );
+    }
+    return result;
+  }, [orders, activeFilter, search]);
 
   const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
 
@@ -200,6 +212,26 @@ export default function OrdersDashboard() {
         </View>
       </LinearGradient>
 
+      {/* Search Bar */}
+      <View style={styles.searchWrap}>
+        <View style={[styles.searchBar, { backgroundColor: themed.colors.card }]}>
+          <Icon name="magnify" size={20} color={COLORS.text.muted} />
+          <TextInput
+            style={[styles.searchInput, { color: themed.colors.text.primary }]}
+            placeholder="Search by name, ID, or phone..."
+            placeholderTextColor={COLORS.text.muted}
+            value={search}
+            onChangeText={setSearch}
+            autoCapitalize="none"
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <Icon name="close-circle" size={18} color={COLORS.text.muted} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {/* Filter Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList} style={styles.filterScroll}>
         {STATUS_FILTERS.map((f) => (
@@ -230,7 +262,11 @@ export default function OrdersDashboard() {
             <Icon name="clipboard-text-outline" size={56} color={COLORS.text.muted} />
             <Text style={styles.emptyTitle}>No orders found</Text>
             <Text style={styles.emptyDesc}>
-              {activeFilter === 'all' ? 'Orders will appear here when customers place them' : `No ${activeFilter.replace(/_/g, ' ')} orders right now`}
+              {search.trim()
+                ? `No orders matching "${search}"`
+                : activeFilter === 'all'
+                  ? 'Orders will appear here when customers place them'
+                  : `No ${activeFilter.replace(/_/g, ' ')} orders right now`}
             </Text>
           </View>
         }
@@ -269,8 +305,18 @@ const styles = StyleSheet.create({
   statCount: { fontSize: 22, fontWeight: '800', marginTop: 4 },
   statLabel: { fontSize: 11, fontWeight: '600', color: COLORS.text.secondary, marginTop: 2 },
 
+  /* Search */
+  searchWrap: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md },
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
+    paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border,
+    ...SHADOW.sm,
+  },
+  searchInput: { flex: 1, fontSize: 14, paddingVertical: 4 },
+
   /* Filters */
-  filterScroll: { marginTop: SPACING.md, flexGrow: 0, flexShrink: 0 },
+  filterScroll: { marginTop: SPACING.sm, flexGrow: 0, flexShrink: 0 },
   filterList: { paddingHorizontal: SPACING.base, gap: SPACING.sm, alignItems: 'center' },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: RADIUS.full,

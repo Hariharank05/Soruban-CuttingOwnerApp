@@ -84,6 +84,7 @@ const MENU_SECTIONS: MenuSection[] = [
     items: [
       { icon: 'wallet', label: 'Payments', route: '/payments', color: '#388E3C', bg: '#E8F5E9' },
       { icon: 'chart-bar', label: 'Sales Report', route: '/sales-report', color: '#1565C0', bg: '#E3F2FD' },
+      { icon: 'fire', label: 'Popular Products', route: '/popular-products', color: '#E65100', bg: '#FFF3E0', isNew: true },
       { icon: 'bank-transfer', label: 'Settlements', route: '/settlements', color: '#00796B', bg: '#E0F7FA' },
       { icon: 'wallet-outline', label: 'Wallets', route: '/wallet-manage', color: '#388E3C', bg: '#E8F5E9' },
     ],

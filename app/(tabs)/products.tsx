@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  StatusBar, TextInput, Image, Switch,
+  StatusBar, TextInput, Image, Switch, Alert, Animated,
 } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,6 +29,19 @@ export default function ProductsScreen() {
   const { handleScroll } = useTabBar();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [bulkMode, setBulkMode] = useState(false);
+  const { translateY } = useTabBar();
+
+  const toggleBulkMode = () => {
+    const next = !bulkMode;
+    setBulkMode(next);
+    Animated.spring(translateY, {
+      toValue: next ? 100 : 0,
+      useNativeDriver: true,
+      tension: 80,
+      friction: 12,
+    }).start();
+  };
 
   const filteredProducts = useMemo(() => {
     let result = products;
@@ -41,6 +54,40 @@ export default function ProductsScreen() {
     }
     return result;
   }, [products, activeCategory, search]);
+
+  const outOfStockCount = useMemo(() => filteredProducts.filter(p => p.inStock !== false).length, [filteredProducts]);
+  const inStockCount = useMemo(() => filteredProducts.filter(p => p.inStock === false).length, [filteredProducts]);
+  const activeCategoryLabel = CATEGORIES.find(c => c.key === activeCategory)?.label || 'All';
+
+  const handleBulkOutOfStock = () => {
+    const affected = filteredProducts.filter(p => p.inStock !== false);
+    if (affected.length === 0) return;
+    const names = affected.slice(0, 5).map(p => p.name).join(', ');
+    const more = affected.length > 5 ? ` and ${affected.length - 5} more` : '';
+    Alert.alert(
+      'Mark Out of Stock',
+      `Category: ${activeCategoryLabel}\n\n${affected.length} product${affected.length !== 1 ? 's' : ''} will be marked out of stock:\n\n${names}${more}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Confirm', style: 'destructive', onPress: () => affected.forEach(p => toggleStock?.(p.id)) },
+      ],
+    );
+  };
+
+  const handleBulkInStock = () => {
+    const affected = filteredProducts.filter(p => p.inStock === false);
+    if (affected.length === 0) return;
+    const names = affected.slice(0, 5).map(p => p.name).join(', ');
+    const more = affected.length > 5 ? ` and ${affected.length - 5} more` : '';
+    Alert.alert(
+      'Mark In Stock',
+      `Category: ${activeCategoryLabel}\n\n${affected.length} product${affected.length !== 1 ? 's' : ''} will be marked in stock:\n\n${names}${more}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Confirm', onPress: () => affected.forEach(p => toggleStock?.(p.id)) },
+      ],
+    );
+  };
 
   const renderProduct = ({ item }: { item: Product }) => {
     const inStock = item.inStock !== false;
@@ -100,6 +147,13 @@ export default function ProductsScreen() {
         <View style={styles.headerRow}>
           <Text style={[styles.headerTitle, themed.textPrimary]}>Products</Text>
           <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.bulkBtn, bulkMode && styles.bulkBtnActive]}
+              onPress={toggleBulkMode}
+            >
+              <Icon name={bulkMode ? 'check-bold' : 'checkbox-multiple-outline'} size={18} color="#FFF" />
+              <Text style={styles.bulkBtnText}>Bulk</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.createPackBtn}
               onPress={() => router.push('/pack-form' as any)}
@@ -168,7 +222,7 @@ export default function ProductsScreen() {
         data={filteredProducts}
         keyExtractor={item => item.id}
         renderItem={renderProduct}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, bulkMode && { paddingBottom: 160 }]}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -189,6 +243,18 @@ export default function ProductsScreen() {
         }
       />
 
+      {bulkMode && (
+        <View style={styles.bulkBar}>
+          <TouchableOpacity style={styles.bulkBarBtnDanger} onPress={handleBulkOutOfStock}>
+            <Icon name="close-circle-outline" size={20} color="#FFF" />
+            <Text style={styles.bulkBarBtnText}>Out of Stock ({outOfStockCount})</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bulkBarBtnSuccess} onPress={handleBulkInStock}>
+            <Icon name="check-circle-outline" size={20} color="#FFF" />
+            <Text style={styles.bulkBarBtnText}>In Stock ({inStockCount})</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -276,4 +342,28 @@ const styles = StyleSheet.create({
   },
   emptyBtnText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
 
+  /* Bulk Mode */
+  bulkBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: COLORS.text.secondary, borderRadius: RADIUS.full,
+    paddingHorizontal: 14, paddingVertical: 8, ...SHADOW.sm,
+  },
+  bulkBtnActive: { backgroundColor: '#388E3C' },
+  bulkBtnText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
+  bulkBar: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    flexDirection: 'row', gap: SPACING.sm,
+    paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.xl,
+    backgroundColor: COLORS.background,
+    borderTopWidth: 1, borderTopColor: COLORS.border, ...SHADOW.lg,
+  },
+  bulkBarBtnDanger: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4,
+    backgroundColor: '#C62828', borderRadius: RADIUS.lg, paddingVertical: 12, paddingHorizontal: SPACING.sm,
+  },
+  bulkBarBtnSuccess: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4,
+    backgroundColor: '#388E3C', borderRadius: RADIUS.lg, paddingVertical: 12, paddingHorizontal: SPACING.sm,
+  },
+  bulkBarBtnText: { fontSize: 11, fontWeight: '700', color: '#FFF', textAlign: 'center' },
 });

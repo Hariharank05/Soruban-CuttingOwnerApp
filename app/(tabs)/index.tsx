@@ -31,6 +31,13 @@ const STATUS_CONFIG_BASE: Record<string, { color: string; icon: string; bgKey: k
 
 type BusinessTab = 'Sales' | 'Feedback' | 'Customers';
 
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good Morning';
+  if (h < 17) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
 export default function DashboardScreen() {
   const router = useRouter();
   const themed = useThemedStyles();
@@ -166,9 +173,9 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.scrollContent}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={themed.colors.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFF" />}
       >
-        {/* ── Warm Gradient Header ── */}
+        {/* ── Header with Greeting ── */}
         <LinearGradient
           colors={['#FF6B35', '#FF8C42', '#FFB347']}
           start={{ x: 0, y: 0 }}
@@ -181,15 +188,8 @@ export default function DashboardScreen() {
               <Icon name="menu" size={22} color="#FFF" />
             </TouchableOpacity>
             <View style={styles.headerLeft}>
+              <Text style={styles.greeting}>{getGreeting()}</Text>
               <Text style={styles.shopName}>{owner?.name || 'My Shop'}</Text>
-              <View style={styles.outletInfoRow}>
-                <Text style={styles.outletInfoText}>
-                  {stats.totalProducts} Products  |  {stats.activeSubscriptions} Subs  |  </Text>
-                <Text style={[styles.outletInfoText, { color: stats.availableDrivers > 0 ? '#C8FFD4' : '#FFD4D4' }]}>
-                  {stats.availableDrivers} Online
-                </Text>
-                <Icon name="chevron-right" size={14} color="rgba(255,255,255,0.6)" />
-              </View>
             </View>
             <View style={styles.headerActions}>
               <TouchableOpacity style={styles.headerIconBtn} onPress={() => router.push('/notifications' as any)}>
@@ -205,10 +205,64 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Today's Highlights */}
+          <View style={styles.highlightsRow}>
+            <View style={styles.highlightItem}>
+              <Icon name="currency-inr" size={16} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.highlightValue}>
+                {stats.todayRevenue > 1000 ? `${(stats.todayRevenue / 1000).toFixed(1)}K` : stats.todayRevenue}
+              </Text>
+              <Text style={styles.highlightLabel}>Today</Text>
+            </View>
+            <View style={styles.highlightDivider} />
+            <View style={styles.highlightItem}>
+              <Icon name="receipt" size={16} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.highlightValue}>{stats.todayOrderCount}</Text>
+              <Text style={styles.highlightLabel}>Orders</Text>
+            </View>
+            <View style={styles.highlightDivider} />
+            <View style={styles.highlightItem}>
+              <Icon name="truck-check" size={16} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.highlightValue}>{stats.deliveredToday}</Text>
+              <Text style={styles.highlightLabel}>Delivered</Text>
+            </View>
+            <View style={styles.highlightDivider} />
+            <View style={styles.highlightItem}>
+              <Icon name="motorbike" size={16} color={stats.availableDrivers > 0 ? '#C8FFD4' : '#FFD4D4'} />
+              <Text style={styles.highlightValue}>{stats.availableDrivers}</Text>
+              <Text style={styles.highlightLabel}>Drivers</Text>
+            </View>
+          </View>
         </LinearGradient>
 
-        {/* ── Business Card (floats over gradient) ── */}
-        <View style={styles.businessCardWrap}>
+        {/* ── Order Status Cards ── */}
+        <View style={styles.orderStatusSection}>
+          <View style={styles.orderStatusRow}>
+            {[
+              { count: stats.pendingOrders, label: 'Pending', status: 'pending', icon: 'clock-outline', color: '#E65100', bg: '#FFF3E0' },
+              { count: stats.preparingOrders, label: 'Preparing', status: 'preparing', icon: 'food-variant', color: '#1565C0', bg: '#E3F2FD' },
+              { count: stats.readyOrders, label: 'Ready', status: 'ready', icon: 'check-circle-outline', color: '#388E3C', bg: '#E8F5E9' },
+              { count: stats.outForDelivery, label: 'In Transit', status: 'out_for_delivery', icon: 'truck-delivery-outline', color: '#7B1FA2', bg: '#F3E5F5' },
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.label}
+                style={[styles.orderStatusPill, { backgroundColor: item.bg }]}
+                onPress={() => router.push({ pathname: '/(tabs)/orders', params: { filter: item.status } } as any)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.orderStatusIconWrap, { backgroundColor: item.color + '18' }]}>
+                  <Icon name={item.icon as any} size={20} color={item.color} />
+                </View>
+                <Text style={[styles.orderStatusCount, { color: item.color }]}>{item.count}</Text>
+                <Text style={[styles.orderStatusLabel, { color: item.color }]}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ── Business Card ── */}
+        <View style={styles.cardSection}>
           <View style={[styles.businessCard, themed.card]}>
             <View style={styles.businessCardHeader}>
               <View>
@@ -248,62 +302,27 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* ── Order Status Cards ── */}
-        <View style={styles.orderStatusSection}>
-          <View style={styles.orderStatusRow}>
-            {[
-              { count: stats.pendingOrders, label: 'Pending', status: 'pending', icon: 'clock-outline', color: '#E65100', bg: '#FFF3E0' },
-              { count: stats.preparingOrders, label: 'Preparing', status: 'preparing', icon: 'food-variant', color: '#1565C0', bg: '#E3F2FD' },
-              { count: stats.readyOrders, label: 'Ready', status: 'ready', icon: 'check-circle-outline', color: '#388E3C', bg: '#E8F5E9' },
-              { count: stats.outForDelivery, label: 'In Transit', status: 'out_for_delivery', icon: 'truck-delivery-outline', color: '#7B1FA2', bg: '#F3E5F5' },
-            ].map((item) => (
-              <TouchableOpacity
-                key={item.label}
-                style={[styles.orderStatusPill, { backgroundColor: item.bg }]}
-                onPress={() => router.push({ pathname: '/(tabs)/orders', params: { filter: item.status } } as any)}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.orderStatusIconWrap, { backgroundColor: item.color + '18' }]}>
-                  <Icon name={item.icon as any} size={18} color={item.color} />
-                </View>
-                <Text style={[styles.orderStatusCount, { color: item.color }]}>{item.count}</Text>
-                <Text style={[styles.orderStatusLabel, { color: item.color }]}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
+        {/* ── Quick Shortcuts ── */}
+        <View style={styles.cardSection}>
+          <View style={styles.shortcutsRow}>
+            <TouchableOpacity style={[styles.shortcutCard, { backgroundColor: '#E8F5E9' }]} onPress={() => router.push('/kitchen-summary' as any)}>
+              <Icon name="chef-hat" size={22} color="#388E3C" />
+              <Text style={[styles.shortcutText, { color: '#388E3C' }]}>Kitchen</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.shortcutCard, { backgroundColor: '#E3F2FD' }]} onPress={() => router.push('/sales-report' as any)}>
+              <Icon name="chart-bar" size={22} color="#1565C0" />
+              <Text style={[styles.shortcutText, { color: '#1565C0' }]}>Sales</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.shortcutCard, { backgroundColor: '#FFF3E0' }]} onPress={() => router.push('/customers' as any)}>
+              <Icon name="account-group" size={22} color="#E65100" />
+              <Text style={[styles.shortcutText, { color: '#E65100' }]}>Customers</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.shortcutCard, { backgroundColor: '#F3E5F5' }]} onPress={() => router.push('/reviews-manage' as any)}>
+              <Icon name="star-outline" size={22} color="#7B1FA2" />
+              <Text style={[styles.shortcutText, { color: '#7B1FA2' }]}>Reviews</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        {/* ── Today's Revenue Card ── */}
-        {/* <View style={styles.cardSection}>
-          <View style={[styles.card, themed.card]}>
-            <LinearGradient
-              colors={['#1B5E20', '#2E7D32', '#43A047']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.revenueGradient}
-            >
-              <View style={styles.revenueRow}>
-                <View style={styles.revenueCol}>
-                  <View style={styles.revenueLabelRow}>
-                    <Icon name="chart-line" size={14} color="rgba(255,255,255,0.7)" />
-                    <Text style={styles.revenueLabel}>Today's Sales</Text>
-                  </View>
-                  <Text style={styles.revenueAmount}>{'\u20B9'}{stats.todayRevenue.toLocaleString('en-IN')}</Text>
-                  <Text style={styles.revenueSubtext}>{stats.todayOrderCount} orders today</Text>
-                </View>
-                <View style={styles.revenueDivider} />
-                <View style={styles.revenueCol}>
-                  <View style={styles.revenueLabelRow}>
-                    <Icon name="finance" size={14} color="rgba(255,255,255,0.7)" />
-                    <Text style={styles.revenueLabel}>Total Revenue</Text>
-                  </View>
-                  <Text style={styles.revenueAmount}>{'\u20B9'}{stats.totalRevenue.toLocaleString('en-IN')}</Text>
-                  <Text style={styles.revenueSubtext}>{stats.deliveredToday} delivered today</Text>
-                </View>
-              </View>
-            </LinearGradient>
-          </View>
-        </View> */}
 
         {/* ── Recent Orders ── */}
         <View style={styles.cardSection}>
@@ -328,7 +347,7 @@ export default function DashboardScreen() {
                 return (
                   <TouchableOpacity
                     key={order.id}
-                    style={[styles.orderRow, idx < recentOrders.length - 1 && styles.orderRowBorder, idx < recentOrders.length - 1 && { borderBottomColor: themed.colors.divider }]}
+                    style={[styles.orderRow, { borderLeftColor: config.color }, idx < recentOrders.length - 1 && styles.orderRowBorder, idx < recentOrders.length - 1 && { borderBottomColor: themed.colors.divider }]}
                     activeOpacity={0.7}
                     onPress={() => router.push({ pathname: '/order-detail', params: { id: order.id } })}
                   >
@@ -376,19 +395,16 @@ const styles = StyleSheet.create({
 
   /* ── Header Gradient ── */
   headerGradient: {
-    paddingTop: SPACING.md, paddingBottom: 60,
+    paddingTop: SPACING.md, paddingBottom: SPACING.lg,
     paddingHorizontal: SPACING.lg,
   },
   headerTopRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     gap: SPACING.md,
   },
   headerLeft: { flex: 1 },
-  shopName: { fontSize: 24, fontWeight: '800', color: '#FFF', letterSpacing: -0.3 },
-  outletInfoRow: {
-    flexDirection: 'row', alignItems: 'center', marginTop: 4,
-  },
-  outletInfoText: { fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: '600' },
+  greeting: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
+  shopName: { fontSize: 22, fontWeight: '800', color: '#FFF', letterSpacing: -0.3, marginTop: 2 },
   headerActions: { flexDirection: 'row', gap: SPACING.sm },
   headerIconBtn: {
     width: 42, height: 42, borderRadius: 21,
@@ -402,13 +418,45 @@ const styles = StyleSheet.create({
   },
   notifDotText: { fontSize: 9, fontWeight: '800', color: '#FFF' },
 
-  /* ── Business Card ── */
-  businessCardWrap: {
-    paddingHorizontal: SPACING.base, marginTop: -44,
+  /* ── Today's Highlights ── */
+  highlightsRow: {
+    flexDirection: 'row', alignItems: 'center',
+    marginTop: SPACING.lg,
+    backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.md,
   },
+  highlightItem: { flex: 1, alignItems: 'center' },
+  highlightValue: { fontSize: 18, fontWeight: '800', color: '#FFF', marginTop: 4 },
+  highlightLabel: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  highlightDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.25)' },
+
+  /* ── Order Status Row ── */
+  orderStatusSection: {
+    paddingHorizontal: SPACING.base, marginTop: SPACING.lg,
+  },
+  orderStatusRow: {
+    flexDirection: 'row', gap: SPACING.sm,
+  },
+  orderStatusPill: {
+    flex: 1, alignItems: 'center',
+    borderRadius: RADIUS.lg + 2,
+    paddingVertical: SPACING.md + 4,
+    ...SHADOW.sm,
+  },
+  orderStatusIconWrap: {
+    width: 40, height: 40, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center', marginBottom: 6,
+  },
+  orderStatusCount: { fontSize: 22, fontWeight: '800' },
+  orderStatusLabel: { fontSize: 11, fontWeight: '700', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.3 },
+
+  /* ── Card Sections ── */
+  cardSection: { paddingHorizontal: SPACING.base, marginTop: SPACING.base },
+
+  /* ── Business Card ── */
   businessCard: {
     borderRadius: RADIUS.xl + 4, overflow: 'hidden',
-    ...SHADOW.lg, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
+    ...SHADOW.md, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
   },
   businessCardHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
@@ -430,15 +478,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 8,
     borderRadius: RADIUS.full, backgroundColor: '#F5F5F5',
   },
-  businessTabActive: {
-    backgroundColor: '#FF6B35',
-  },
-  businessTabText: {
-    fontSize: 13, fontWeight: '600', color: '#666',
-  },
-  businessTabTextActive: {
-    color: '#FFF',
-  },
+  businessTabActive: { backgroundColor: '#FF6B35' },
+  businessTabText: { fontSize: 13, fontWeight: '600', color: '#666' },
+  businessTabTextActive: { color: '#FFF' },
 
   /* ── Business Content ── */
   businessContentRow: {
@@ -466,28 +508,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
 
-  /* ── Order Status Row ── */
-  orderStatusSection: {
-    paddingHorizontal: SPACING.base, marginTop: SPACING.lg,
+  /* ── Quick Shortcuts ── */
+  shortcutsRow: { flexDirection: 'row', gap: SPACING.sm },
+  shortcutCard: {
+    flex: 1, alignItems: 'center', gap: 6,
+    paddingVertical: SPACING.md, borderRadius: RADIUS.lg,
   },
-  orderStatusRow: {
-    flexDirection: 'row', gap: SPACING.sm,
-  },
-  orderStatusPill: {
-    flex: 1, alignItems: 'center',
-    borderRadius: RADIUS.lg + 2,
-    paddingVertical: SPACING.md + 2,
-    ...SHADOW.sm,
-  },
-  orderStatusIconWrap: {
-    width: 38, height: 38, borderRadius: 19,
-    justifyContent: 'center', alignItems: 'center', marginBottom: 6,
-  },
-  orderStatusCount: { fontSize: 22, fontWeight: '800' },
-  orderStatusLabel: { fontSize: 9, fontWeight: '700', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  shortcutText: { fontSize: 11, fontWeight: '700' },
 
-  /* ── Card Sections ── */
-  cardSection: { paddingHorizontal: SPACING.base, marginTop: SPACING.base },
+  /* ── Main Card ── */
   card: {
     borderRadius: RADIUS.xl + 4, padding: SPACING.lg,
     ...SHADOW.md, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
@@ -499,25 +528,14 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
 
   /* ── See All Link ── */
-  seeAllLink: {
-    flexDirection: 'row', alignItems: 'center', gap: 3,
-  },
+  seeAllLink: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   seeAllLinkText: { fontSize: 13, fontWeight: '700', color: '#FF6B35' },
-
-  /* ── Revenue Card ── */
-  revenueGradient: { padding: SPACING.lg, paddingVertical: SPACING.xl, borderRadius: RADIUS.xl },
-  revenueRow: { flexDirection: 'row', alignItems: 'center' },
-  revenueCol: { flex: 1 },
-  revenueLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  revenueLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5 },
-  revenueAmount: { fontSize: 26, fontWeight: '800', color: '#FFF', marginTop: 6, letterSpacing: -1 },
-  revenueSubtext: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontWeight: '500' },
-  revenueDivider: { width: 1, height: 50, backgroundColor: 'rgba(255,255,255,0.18)', marginHorizontal: SPACING.lg },
 
   /* ── Recent Orders ── */
   orderRow: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
     paddingVertical: SPACING.md + 2,
+    borderLeftWidth: 3, paddingLeft: SPACING.sm,
   },
   orderRowBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.divider },
   orderIcon: {
