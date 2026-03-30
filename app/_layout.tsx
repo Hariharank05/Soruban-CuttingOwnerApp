@@ -137,6 +137,7 @@ function RootLayoutNav() {
           <Stack.Screen name="b2b-manage" />
           <Stack.Screen name="kitchen-summary" />
           <Stack.Screen name="popular-products" />
+          <Stack.Screen name="expense-tracker" />
         </Stack>
       </View>
     </NavThemeProvider>
