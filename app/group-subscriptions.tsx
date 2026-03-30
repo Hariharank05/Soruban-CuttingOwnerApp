@@ -184,6 +184,7 @@ export default function GroupSubscriptionsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#B8E0CF', zIndex: 10 }} />
 
       {/* Header */}
       <LinearGradient colors={['#7B1FA2', '#9C27B0']} style={styles.header}>

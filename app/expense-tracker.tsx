@@ -242,6 +242,7 @@ export default function ExpenseTrackerScreen() {
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#B8E0CF', zIndex: 10 }} />
 
       <LinearGradient colors={['#B8E0CF', '#D6EFE3'] as const} style={styles.header}>
         <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent' }}>

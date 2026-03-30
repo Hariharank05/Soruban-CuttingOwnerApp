@@ -10,7 +10,7 @@ const customers: Customer[] = [
     totalOrders: 24,
     totalSpent: 4560,
     joinedDate: '2025-08-15T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T04:30:00.000Z',
+    lastOrderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago — Active
   },
   {
     id: 'cust_002',
@@ -21,7 +21,7 @@ const customers: Customer[] = [
     totalOrders: 68,
     totalSpent: 12350,
     joinedDate: '2025-06-10T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T06:15:00.000Z',
+    lastOrderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago — Active
   },
   {
     id: 'cust_003',
@@ -32,7 +32,7 @@ const customers: Customer[] = [
     totalOrders: 35,
     totalSpent: 7890,
     joinedDate: '2025-09-01T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T02:00:00.000Z',
+    lastOrderDate: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(), // 18 days ago — Low Risk
   },
   {
     id: 'cust_004',
@@ -43,7 +43,7 @@ const customers: Customer[] = [
     totalOrders: 52,
     totalSpent: 9750,
     joinedDate: '2025-07-20T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T01:30:00.000Z',
+    lastOrderDate: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString(), // 22 days ago — Low Risk
   },
   {
     id: 'cust_005',
@@ -53,7 +53,7 @@ const customers: Customer[] = [
     totalOrders: 15,
     totalSpent: 2890,
     joinedDate: '2025-11-05T00:00:00.000Z',
-    lastOrderDate: '2026-03-11T23:00:00.000Z',
+    lastOrderDate: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(), // 35 days ago — At Risk
   },
   {
     id: 'cust_006',
@@ -64,7 +64,7 @@ const customers: Customer[] = [
     totalOrders: 42,
     totalSpent: 8200,
     joinedDate: '2025-08-01T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T08:00:00.000Z',
+    lastOrderDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago — At Risk
   },
   {
     id: 'cust_007',
@@ -75,7 +75,7 @@ const customers: Customer[] = [
     totalOrders: 90,
     totalSpent: 18500,
     joinedDate: '2025-05-15T00:00:00.000Z',
-    lastOrderDate: '2026-03-11T22:30:00.000Z',
+    lastOrderDate: new Date(Date.now() - 68 * 24 * 60 * 60 * 1000).toISOString(), // 68 days ago — High Risk
   },
   {
     id: 'cust_008',
@@ -85,7 +85,7 @@ const customers: Customer[] = [
     totalOrders: 18,
     totalSpent: 3450,
     joinedDate: '2025-10-20T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T07:45:00.000Z',
+    lastOrderDate: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString(), // 75 days ago — High Risk
   },
   {
     id: 'cust_009',
@@ -96,7 +96,7 @@ const customers: Customer[] = [
     totalOrders: 28,
     totalSpent: 5670,
     joinedDate: '2025-09-10T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T03:00:00.000Z',
+    lastOrderDate: new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString(), // 95 days ago — Lost
   },
   {
     id: 'cust_010',
@@ -107,7 +107,7 @@ const customers: Customer[] = [
     totalOrders: 33,
     totalSpent: 6400,
     joinedDate: '2025-08-25T00:00:00.000Z',
-    lastOrderDate: '2026-03-12T09:00:00.000Z',
+    lastOrderDate: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(), // 120 days ago — Lost
   },
 ];
 

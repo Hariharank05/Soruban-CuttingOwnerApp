@@ -2,12 +2,13 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, Switch, KeyboardAvoidingView, Platform, Image,
-  Pressable, TouchableWithoutFeedback, Keyboard,
+  Pressable, TouchableWithoutFeedback, Keyboard, StatusBar,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SPACING, RADIUS, SHADOW } from '@/src/utils/theme';
 import { useThemedStyles } from '@/src/utils/useThemedStyles';
 import { usePacks } from '@/context/PackContext';
@@ -239,6 +240,8 @@ export default function PackFormScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#B8E0CF', zIndex: 10 }} />
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
         <View style={styles.headerRow}>
@@ -358,14 +361,55 @@ export default function PackFormScreen() {
             />
           </View>
 
-          {/* Image URL */}
+          {/* Pack Image */}
           <View style={styles.field}>
-            <Text style={[styles.label, themed.textPrimary]}>Image URL</Text>
+            <Text style={[styles.label, themed.textPrimary]}>Pack Image</Text>
+            {imageUrl.trim() !== '' && (
+              <View style={styles.mediaPreviewWrap}>
+                <Image source={{ uri: imageUrl }} style={styles.mediaPreview} resizeMode="cover" />
+                <TouchableOpacity style={styles.mediaRemoveBtn} onPress={() => setImageUrl('')}>
+                  <Icon name="close-circle" size={22} color="#E53935" />
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={styles.mediaPickerRow}>
+              <TouchableOpacity
+                style={[styles.mediaPickerBtn, { backgroundColor: '#E8F5E9' }]}
+                onPress={async () => {
+                  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                  if (status !== 'granted') { Alert.alert('Permission needed', 'Camera access is required to take photos.'); return; }
+                  const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8 });
+                  if (!result.canceled && result.assets[0]) setImageUrl(result.assets[0].uri);
+                }}
+              >
+                <Icon name="camera" size={20} color="#388E3C" />
+                <Text style={[styles.mediaPickerText, { color: '#388E3C' }]}>Camera</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.mediaPickerBtn, { backgroundColor: '#E3F2FD' }]}
+                onPress={async () => {
+                  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                  if (status !== 'granted') { Alert.alert('Permission needed', 'Gallery access is required to pick photos.'); return; }
+                  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, legacy: false });
+                  if (!result.canceled && result.assets[0]) setImageUrl(result.assets[0].uri);
+                }}
+              >
+                <Icon name="image-outline" size={20} color="#1565C0" />
+                <Text style={[styles.mediaPickerText, { color: '#1565C0' }]}>Gallery</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.mediaPickerBtn, { backgroundColor: '#F5F5F5' }]}
+                onPress={() => Alert.alert('Image URL', 'Paste the image link in the field below.')}
+              >
+                <Icon name="link-variant" size={20} color="#616161" />
+                <Text style={[styles.mediaPickerText, { color: '#616161' }]}>URL</Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
-              style={[styles.input, themed.inputBg]}
+              style={[styles.input, themed.inputBg, { marginTop: SPACING.sm }]}
               value={imageUrl}
               onChangeText={setImageUrl}
-              placeholder="https://..."
+              placeholder="Or paste image URL here..."
               placeholderTextColor={COLORS.text.muted}
               autoCapitalize="none"
               keyboardType="url"
@@ -658,14 +702,56 @@ export default function PackFormScreen() {
             </View>
           )}
 
-          {/* Cooking Video URL */}
+          {/* Cooking Video */}
           <View style={[styles.field, { marginTop: SPACING.lg }]}>
-            <Text style={[styles.label, themed.textPrimary]}>Cooking Video URL (optional)</Text>
+            <Text style={[styles.label, themed.textPrimary]}>Cooking Video (optional)</Text>
+            {cookingVideoUrl.trim() !== '' && (
+              <View style={styles.mediaUrlPreview}>
+                <Icon name="video-outline" size={18} color={COLORS.primary} />
+                <Text style={styles.mediaUrlText} numberOfLines={1}>{cookingVideoUrl}</Text>
+                <TouchableOpacity onPress={() => setCookingVideoUrl('')}>
+                  <Icon name="close-circle" size={18} color="#E53935" />
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={styles.mediaPickerRow}>
+              <TouchableOpacity
+                style={[styles.mediaPickerBtn, { backgroundColor: '#E8F5E9' }]}
+                onPress={async () => {
+                  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                  if (status !== 'granted') { Alert.alert('Permission needed', 'Camera access is required to record video.'); return; }
+                  const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 30, videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium });
+                  if (!result.canceled && result.assets[0]) setCookingVideoUrl(result.assets[0].uri);
+                }}
+              >
+                <Icon name="video" size={20} color="#388E3C" />
+                <Text style={[styles.mediaPickerText, { color: '#388E3C' }]}>Record</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.mediaPickerBtn, { backgroundColor: '#E3F2FD' }]}
+                onPress={async () => {
+                  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                  if (status !== 'granted') { Alert.alert('Permission needed', 'Gallery access is required to pick videos.'); return; }
+                  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], legacy: false });
+                  if (!result.canceled && result.assets[0]) setCookingVideoUrl(result.assets[0].uri);
+                }}
+              >
+                <Icon name="file-video-outline" size={20} color="#1565C0" />
+                <Text style={[styles.mediaPickerText, { color: '#1565C0' }]}>Gallery</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.mediaPickerBtn, { backgroundColor: '#F5F5F5' }]}
+                onPress={() => Alert.alert('Video URL', 'Paste the video link in the field below.')}
+              >
+                <Icon name="link-variant" size={20} color="#616161" />
+                <Text style={[styles.mediaPickerText, { color: '#616161' }]}>URL</Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
-              style={[styles.input, themed.inputBg]}
+              style={[styles.input, themed.inputBg, { marginTop: SPACING.sm }]}
               value={cookingVideoUrl}
               onChangeText={setCookingVideoUrl}
-              placeholder="https://youtube.com/..."
+              placeholder="Or paste video URL here..."
               placeholderTextColor={COLORS.text.muted}
               autoCapitalize="none"
               keyboardType="url"
@@ -907,4 +993,20 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: COLORS.status.error,
   },
   deleteBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.status.error },
+
+  /* Media Picker */
+  mediaPickerRow: { flexDirection: 'row', gap: SPACING.sm },
+  mediaPickerBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: SPACING.md, borderRadius: RADIUS.md,
+  },
+  mediaPickerText: { fontSize: 12, fontWeight: '700' },
+  mediaPreviewWrap: { position: 'relative', marginBottom: SPACING.sm },
+  mediaPreview: { width: '100%', height: 160, borderRadius: RADIUS.md, backgroundColor: '#F0F0F0' },
+  mediaRemoveBtn: { position: 'absolute', top: 8, right: 8 },
+  mediaUrlPreview: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
+    backgroundColor: '#F0F8FF', padding: SPACING.sm, borderRadius: RADIUS.md, marginBottom: SPACING.sm,
+  },
+  mediaUrlText: { flex: 1, fontSize: 12, color: COLORS.text.secondary },
 });

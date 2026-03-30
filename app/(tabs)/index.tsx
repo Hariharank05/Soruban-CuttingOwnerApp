@@ -165,8 +165,9 @@ export default function DashboardScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top']}>
-      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
+    <View style={[styles.safe, themed.safeArea]}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#FF6B35', zIndex: 10 }} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -385,7 +386,7 @@ export default function DashboardScreen() {
       </ScrollView>
 
       <SidebarDrawer visible={sidebarVisible} onClose={() => setSidebarVisible(false)} />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
 
   /* ── Header Gradient ── */
   headerGradient: {
-    paddingTop: SPACING.md, paddingBottom: SPACING.lg,
+    paddingTop: (StatusBar.currentHeight || 0) + SPACING.md, paddingBottom: SPACING.lg,
     paddingHorizontal: SPACING.lg,
   },
   headerTopRow: {

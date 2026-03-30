@@ -152,6 +152,7 @@ export default function OrderDetailScreen() {
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
       <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#E8F5E9', zIndex: 10 }} />
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
         <View style={styles.headerRow}>

@@ -139,8 +139,9 @@ export default function ProductsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
+    <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#E8F5E9', zIndex: 10 }} />
 
       {/* Header */}
       <LinearGradient colors={themed.headerGradient} style={styles.header}>
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.background },
 
   /* Header */
-  header: { paddingHorizontal: SPACING.base, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
+  header: { paddingHorizontal: SPACING.base, paddingTop: (StatusBar.currentHeight || 0) + SPACING.md, paddingBottom: SPACING.sm },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text.primary },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },

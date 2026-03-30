@@ -51,8 +51,9 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['top', 'bottom']}>
-      <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
+    <View style={[styles.safe, themed.safeArea]}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#FF6B35', zIndex: 10 }} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} onScroll={handleScroll} scrollEventThrottle={16}>
         {/* ── Profile Header ── */}
@@ -203,7 +204,7 @@ export default function ProfileScreen() {
           <Text style={styles.footerVersion}>Cutting Owner App v{APP_VERSION}</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
 
   /* ── Header Gradient ── */
   headerGradient: {
-    paddingTop: SPACING.lg, paddingBottom: SPACING.xl,
+    paddingTop: (StatusBar.currentHeight || 0) + SPACING.lg, paddingBottom: SPACING.xl,
     paddingHorizontal: SPACING.lg,
   },
   profileRow: {

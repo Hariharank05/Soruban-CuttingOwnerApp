@@ -74,6 +74,7 @@ const MENU_SECTIONS: MenuSection[] = [
     title: 'Customers & Engagement',
     items: [
       { icon: 'account-group', label: 'Customers', route: '/customers', color: '#1565C0', bg: '#E3F2FD' },
+      { icon: 'account-alert', label: 'Inactive Customers', route: '/inactive-customers', color: '#C62828', bg: '#FFEBEE', isNew: true },
       { icon: 'gift-outline', label: 'Loyalty', route: '/loyalty', color: '#7B1FA2', bg: '#F3E5F5' },
       { icon: 'shield-star', label: 'Loyalty Tiers', route: '/loyalty-tiers', color: '#FF9800', bg: '#FFF3E0' },
       { icon: 'food-variant', label: 'Recipes', route: '/recipes-manage', color: '#E65100', bg: '#FFF3E0' },

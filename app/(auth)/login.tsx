@@ -60,6 +60,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={[styles.safe, themed.safeArea]} edges={['bottom']}>
       <StatusBar barStyle={themed.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: StatusBar.currentHeight || 0, backgroundColor: '#E8F5E9', zIndex: 10 }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
           <LinearGradient colors={themed.headerGradient} style={styles.heroSection}>
